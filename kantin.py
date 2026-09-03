@@ -7,43 +7,34 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CUSTOM CSS UNTUK GAMBAR TRANSPARAN DI TENGAH ---
+# --- CUSTOM CSS UNTUK JADIKAN GAMBAR SEBAGAI BACKGROUND ---
 custom_css = """
 <style>
-    /* 1. Background Halaman Gradasi Soft */
+    /* 1. Gambar dijadikan background halaman penuh */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background-image: linear-gradient(rgba(245, 247, 250, 0.75), rgba(195, 207, 226, 0.75)), url("app/static/nasi.JPG");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
     }
 
-    /* 2. Mengatur Gambar di Tengah & Transparan */
-    [data-testid="stImage"] {
-        display: flex;
-        justify-content: center;
-    }
-    
-    [data-testid="stImage"] img {
-        border-radius: 15px;
-        opacity: 0.5; /* Tingkat transparansi (0.1 = sangat transparan, 1.0 = padat) */
-        max-width: 300px; /* Membatasi ukuran agar pas di tengah */
-        transition: opacity 0.3s ease;
+    /* Jika di Streamlit Cloud path lokal tidak terbaca, gunakan fallback ini */
+    .stApp[data-test-script-path] {
+        background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url("./app/static/nasi.JPG");
     }
 
-    /* Efek saat gambar diarahkan kursor (opsional) */
-    [data-testid="stImage"] img:hover {
-        opacity: 0.8;
-    }
-
-    /* 3. Card Glassmorphism untuk Form */
+    /* 2. Kartu Form dibuat kontras agar tulisan tetap jelas terbaca */
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(8px);
         border-radius: 20px;
         padding: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.5);
     }
 
-    /* 4. Tombol Kirim */
+    /* 3. Styling Tombol Kirim */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 100%);
@@ -57,11 +48,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- TAMPILAN APLIKASI ---
 
-# Gambar di Tengah (use_container_width=False agar ukurannya mengikuti max-width CSS)
-st.image("nasi.JPG", use_container_width=False)
-
-# Judul Utama
-st.markdown("<h1 style='text-align: center; color: #2c3e50;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+# Judul Utama (Tanpa st.image lagi)
+st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
@@ -90,5 +78,5 @@ st.write("")
 st.write("")
 
 # Footer
-footer_html = '<div style="text-align: right; color: #7f8c8d; font-weight: 500; font-size: 0.85rem;">Created by IT Eka Bekasi</div>'
+footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
