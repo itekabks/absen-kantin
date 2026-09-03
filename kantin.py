@@ -26,16 +26,9 @@ if submit_button:
     else:
         st.warning("NIK tidak boleh kosong!")
 
-# --- Menambahkan Footer "Created By" ---
-# Memberikan ruang kosong sedikit agar tidak menempel ke form
-st.write("") 
+st.write("")
 st.write("")
 
-# Menampilkan teks di pojok kanan bawah, berwarna abu-abu kecil
-st.markdown(
-    """
-    <div style="text-align: right; color: gray; font-size: 0.8rem;">
-        Created by IT Eka Bekasi
-    </div>
-    """, 
-    unsafe_allow_html=True
+# Penulisan st.markdown yang ringkas dan aman dari SyntaxError
+footer_html = '<div style="text-align: right; color: gray; font-size: 0.8rem;">Created by IT Eka Bekasi</div>'
+st.markdown(footer_html, unsafe_allow_html=True)
