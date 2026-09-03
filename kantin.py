@@ -7,7 +7,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CUSTOM CSS UNTUK EFEK BACKGROUND & TAMPILAN ---
+# --- CUSTOM CSS UNTUK GAMBAR TRANSPARAN DI TENGAH ---
 custom_css = """
 <style>
     /* 1. Background Halaman Gradasi Soft */
@@ -15,7 +15,25 @@ custom_css = """
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
 
-    /* 2. Efek Card Glassmorphism untuk Form */
+    /* 2. Mengatur Gambar di Tengah & Transparan */
+    [data-testid="stImage"] {
+        display: flex;
+        justify-content: center;
+    }
+    
+    [data-testid="stImage"] img {
+        border-radius: 15px;
+        opacity: 0.5; /* Tingkat transparansi (0.1 = sangat transparan, 1.0 = padat) */
+        max-width: 300px; /* Membatasi ukuran agar pas di tengah */
+        transition: opacity 0.3s ease;
+    }
+
+    /* Efek saat gambar diarahkan kursor (opsional) */
+    [data-testid="stImage"] img:hover {
+        opacity: 0.8;
+    }
+
+    /* 3. Card Glassmorphism untuk Form */
     [data-testid="stForm"] {
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(10px);
@@ -25,26 +43,13 @@ custom_css = """
         border: 1px solid rgba(255,255,255,0.3);
     }
 
-    /* 3. Menghaluskan Sudut Gambar */
-    [data-testid="stImage"] img {
-        border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    /* 4. Efek Tombol Animasi saat Hover */
+    /* 4. Tombol Kirim */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 100%);
         color: white;
         border: none;
         font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
-        color: white;
     }
 </style>
 """
@@ -52,8 +57,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- TAMPILAN APLIKASI ---
 
-# Gambar Header
-st.image("nasi.JPG", use_container_width=True)
+# Gambar di Tengah (use_container_width=False agar ukurannya mengikuti max-width CSS)
+st.image("nasi.JPG", use_container_width=False)
 
 # Judul Utama
 st.markdown("<h1 style='text-align: center; color: #2c3e50;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
