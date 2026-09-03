@@ -3,14 +3,12 @@ import streamlit as st
 
 st.title("📌 Absensi Sederhana")
 
-# Link Form dan Entry ID milik Anda
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
 
-# Form agar mendukung tombol Enter & otomatis reset kolom setelah submit
+# Form untuk mendukun tombol Enter & otomatis reset isi kolom setelah dikirim
 with st.form(key="form_absen", clear_on_submit=True):
-    # Parameter autofocus=True membuat kursor langsung aktif di kolom NIK
-    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):", autofocus=True)
+    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
     submit_button = st.form_submit_button(label="Kirim Absen")
 
 # Proses pengiriman data
