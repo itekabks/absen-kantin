@@ -5,7 +5,7 @@ st.title("📌 Absensi Sederhana")
 
 # GANTI LINK DI BAWAH SESUAI LINK GOOGLE FORM ANDA
 # (Ganti '/viewform' di akhir link menjadi '/formResponse')
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc.../formResponse"
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/viewform?usp=sharing&ouid=105557903003254418755"
 
 # GANTI ENTRY ID SESUAI DENGAN ENTRY ID NIK ANDA
 ENTRY_NIK = "entry.924986826"
