@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-st.title("📌 Absensi Sederhana")
+st.title("📌 Absensi Kantin Eka Bekasi")
 
 # Link Form yang sudah disesuaikan
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
