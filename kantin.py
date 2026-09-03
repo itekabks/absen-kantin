@@ -103,5 +103,5 @@ st.write("")
 st.write("")
 
 # Footer
-footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
+footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 3rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
