@@ -1,3 +1,5 @@
+import base64
+import os
 import requests
 import streamlit as st
 
@@ -7,34 +9,45 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CUSTOM CSS UNTUK JADIKAN GAMBAR SEBAGAI BACKGROUND ---
+# Function untuk konversi gambar lokal ke Base64
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return ""
+
+# Ambil string base64 dari nasi.JPG
+img_base64 = get_base64_image("nasi.JPG")
+
+# Jika gambar ditemukan, gunakan sebagai background
+if img_base64:
+    bg_css = f"""
+    <style>
+        .stApp {{
+            background-image: linear-gradient(rgba(245, 247, 250, 0.75), rgba(195, 207, 226, 0.75)), url("data:image/jpeg;base64,{img_base64}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+    </style>
+    """
+    st.markdown(bg_css, unsafe_allow_html=True)
+
+# --- CUSTOM CSS LAINNYA ---
 custom_css = """
 <style>
-    /* 1. Gambar dijadikan background halaman penuh */
-    .stApp {
-        background-image: linear-gradient(rgba(245, 247, 250, 0.75), rgba(195, 207, 226, 0.75)), url("app/static/nasi.JPG");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }
-
-    /* Jika di Streamlit Cloud path lokal tidak terbaca, gunakan fallback ini */
-    .stApp[data-test-script-path] {
-        background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url("./app/static/nasi.JPG");
-    }
-
-    /* 2. Kartu Form dibuat kontras agar tulisan tetap jelas terbaca */
+    /* Card Glassmorphism untuk Form */
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.9) !important;
+        background: rgba(255, 255, 255, 0.88) !important;
         backdrop-filter: blur(8px);
         border-radius: 20px;
         padding: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        border: 1px solid rgba(255,255,255,0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* 3. Styling Tombol Kirim */
+    /* Styling Tombol Kirim */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 100%);
@@ -48,7 +61,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- TAMPILAN APLIKASI ---
 
-# Judul Utama (Tanpa st.image lagi)
+# Judul Utama
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
