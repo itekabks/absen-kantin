@@ -2,6 +2,7 @@ import base64
 import os
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Absensi Kantin Eka Bekasi", 
@@ -9,17 +10,15 @@ st.set_page_config(
     layout="centered"
 )
 
-# Function untuk konversi gambar lokal ke Base64
+# Function konversi gambar ke Base64
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode()
     return ""
 
-# Ambil string base64 dari nasi.JPG
 img_base64 = get_base64_image("nasi.JPG")
 
-# Jika gambar ditemukan, gunakan sebagai background
 if img_base64:
     bg_css = f"""
     <style>
@@ -34,10 +33,9 @@ if img_base64:
     """
     st.markdown(bg_css, unsafe_allow_html=True)
 
-# --- CUSTOM CSS LAINNYA ---
+# Custom CSS
 custom_css = """
 <style>
-    /* Card Glassmorphism untuk Form */
     [data-testid="stForm"] {
         background: rgba(255, 255, 255, 0.88) !important;
         backdrop-filter: blur(8px);
@@ -47,7 +45,6 @@ custom_css = """
         border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* Styling Tombol Kirim */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #ff7e5f 0%, #feb47b 100%);
@@ -58,8 +55,6 @@ custom_css = """
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
-
-# --- TAMPILAN APLIKASI ---
 
 # Judul Utama
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
@@ -72,7 +67,24 @@ with st.form(key="form_absen", clear_on_submit=True):
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
     submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
-# Proses Kirim
+# --- SCRIPT JAVASCRIPT UNTUK AUTO FOKUS KE KOLOM NIK ---
+components.html(
+    """
+    <script>
+        const focusInput = () => {
+            const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+            if (inputs.length > 0) {
+                inputs[0].focus();
+            }
+        };
+        setTimeout(focusInput, 300);
+    </script>
+    """,
+    height=0,
+    width=0
+)
+
+# Proses Kirim Data
 if submit_button:
     if nik.strip():
         payload = {ENTRY_NIK: nik}
