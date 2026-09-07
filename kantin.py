@@ -22,7 +22,6 @@ ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
 def load_data_karyawan():
     file_path = "karyawan.csv"
     if os.path.exists(file_path):
-        # DITAMBAHKAN sep=';' untuk membaca format titik koma
         df = pd.read_csv(file_path, sep=';', dtype={'nik': str})
         df['nik'] = df['nik'].astype(str).str.strip()
         df['nama'] = df['nama'].astype(str).str.strip()
@@ -48,7 +47,6 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
     }
     url = f"https://api.github.com/repos/{repo}/contents/{FILE_PATH}"
 
-    # DITAMBAHKAN sep=';' agar saat menambah karyawan baru tetap menggunakan format titik koma
     df_new = pd.DataFrame(list(dict_karyawan.items()), columns=['nik', 'nama'])
     csv_content = df_new.to_csv(index=False, sep=';')
     content_encoded = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
@@ -152,7 +150,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 000NIK</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 8 digit angka</p>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #475569; font-weight: 800; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
@@ -160,7 +158,8 @@ ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
 with st.form(key="form_absen_test", clear_on_submit=True):
-    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
+    # max_chars=8 membatasi ketikan maksimal 8 karakter di layar
+    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):", max_chars=8)
     submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
 components.html(
@@ -185,6 +184,9 @@ if submit_button:
         st.warning("NIK tidak boleh kosong!")
     elif not nik_clean.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka! (Tidak boleh ada huruf atau simbol)")
+    elif len(nik_clean) != 8:
+        # Pengecekan wajib 8 digit
+        st.error(f"⚠️ NIK harus terdiri dari **8 karakter/digit**! (Anda memasukkan {len(nik_clean)} digit)")
     else:
         nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
         payload = {
@@ -240,7 +242,7 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
 
         with tab_tambah:
             with st.form("form_tambah_karyawan", clear_on_submit=True):
-                new_nik = st.text_input("NIK Karyawan Baru (contoh: 00003950):").strip()
+                new_nik = st.text_input("NIK Karyawan Baru (contoh: 00003950):", max_chars=8).strip()
                 new_nama = st.text_input("Nama Lengkap Karyawan:").strip()
                 submit_add = st.form_submit_button("Simpan Karyawan ke GitHub")
 
@@ -249,6 +251,8 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                     st.warning("Mohon isi NIK dan Nama secara lengkap!")
                 elif not new_nik.isdigit():
                     st.error("⚠️ NIK Karyawan Baru hanya boleh berupa angka!")
+                elif len(new_nik) != 8:
+                    st.error(f"⚠️ NIK Karyawan Baru harus tepat **8 digit**! (Anda memasukkan {len(new_nik)} digit)")
                 else:
                     if new_nik in db_karyawan:
                         st.warning(f"⚠️ NIK **{new_nik}** sudah terdaftar atas nama **{db_karyawan[new_nik]}**!")
