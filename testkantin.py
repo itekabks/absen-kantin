@@ -12,8 +12,8 @@ st.set_page_config(
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS ---
-GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
-REPO_NAME = st.secrets.get("REPO_NAME", "")
+GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "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")
+REPO_NAME = st.secrets.get("REPO_NAME", "itekabks/absen-kantin")
 FILE_PATH = "karyawan.csv"
 ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
 
