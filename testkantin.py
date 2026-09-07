@@ -7,6 +7,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Absensi Kantin Eka Bekasi", 
+    page_title="Pengisian NIK menggunakan awal 000NIK", 
     page_icon="📌",
     layout="centered"
 )
