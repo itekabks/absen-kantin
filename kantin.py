@@ -22,7 +22,8 @@ ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
 def load_data_karyawan():
     file_path = "karyawan.csv"
     if os.path.exists(file_path):
-        df = pd.read_csv(file_path, dtype={'nik': str})
+        # DITAMBAHKAN sep=';' untuk membaca format titik koma
+        df = pd.read_csv(file_path, sep=';', dtype={'nik': str})
         df['nik'] = df['nik'].astype(str).str.strip()
         df['nama'] = df['nama'].astype(str).str.strip()
         return dict(zip(df['nik'], df['nama']))
@@ -47,8 +48,9 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
     }
     url = f"https://api.github.com/repos/{repo}/contents/{FILE_PATH}"
 
+    # DITAMBAHKAN sep=';' agar saat menambah karyawan baru tetap menggunakan format titik koma
     df_new = pd.DataFrame(list(dict_karyawan.items()), columns=['nik', 'nama'])
-    csv_content = df_new.to_csv(index=False)
+    csv_content = df_new.to_csv(index=False, sep=';')
     content_encoded = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
 
     res = requests.get(url, headers=headers)
