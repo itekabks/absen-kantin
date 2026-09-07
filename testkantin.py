@@ -74,8 +74,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Judul Utama
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
-ENTRY_NIK = "entry.924986826"
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/viewform?usp=dialog"
+ENTRY_NIK = "entry.952185819"
 
 # Form Input Absen
 with st.form(key="form_absen", clear_on_submit=True):
