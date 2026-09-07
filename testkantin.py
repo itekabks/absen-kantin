@@ -39,18 +39,15 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
     }
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
 
-    # 1. Ambil SHA file saat ini dari GitHub
     res = requests.get(url, headers=headers)
     if res.status_code != 200:
         return False, f"Gagal mengakses GitHub: {res.json().get('message', '')}"
     
     sha = res.json()['sha']
 
-    # 2. Buat isi CSV baru dari Dictionary
     df_new = pd.DataFrame(list(dict_karyawan.items()), columns=['nik', 'nama'])
     csv_content = df_new.to_csv(index=False)
 
-    # 3. Encode ke Base64
     content_encoded = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
 
     payload = {
@@ -59,7 +56,6 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
         "sha": sha
     }
 
-    # 4. Kirim Commit ke GitHub
     put_res = requests.put(url, headers=headers, json=payload)
     if put_res.status_code == 200:
         st.cache_data.clear()
@@ -68,10 +64,6 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
         return False, f"Gagal update GitHub: {put_res.json().get('message', '')}"
 
 db_karyawan = load_data_karyawan()
-
-# --- NAVIGASI SIDEBAR ---
-st.sidebar.title("📌 Menu Navigasi")
-menu = st.sidebar.radio("Pilih Halaman:", ["Absensi Kantin", "⚙️ Admin Karyawan"])
 
 # --- BACKGROUND & CUSTOM CSS ---
 def get_base64_image(image_path):
@@ -118,104 +110,88 @@ custom_css = """
     }
 
     /* FIX NOTIFIKASI SUKSES (st.success) */
-    /* 1. Latar Belakang Kotak Notifikasi Berwarna Hijau Solid & Gelap */
     [data-testid="stAlertContainer"] [data-baseweb="notification"] {
-        background-color: #064e3b !important; /* Hijau Gelap Solid */
+        background-color: #064e3b !important;
         border: 2px solid #10b981 !important;
         border-radius: 14px !important;
         padding: 16px !important;
         box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
     }
 
-    /* 2. Teks Putih Solid, Besar, dan Tebal agar Sangat Jelas Dibaca */
     [data-testid="stAlertContainer"] * {
         color: #ffffff !important;
-        font-size: 1.3rem !important; /* Ukuran font diperbesar */
-        font-weight: 700 !important;   /* Cetak tebal */
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
     }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # ==============================================================================
-# HALAMAN 1: ABSENSI KANTIN (TIDAK ADA PERUBAHAN PADA KODE ASLI)
+# HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-if menu == "Absensi Kantin":
-    # Judul Utama
-    st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 000NIK</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #475569; font-weight: 800; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
 
-    # Petunjuk Penulisan NIK
-    st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 000NIK</p>", unsafe_allow_html=True)
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
+ENTRY_NIK = "entry.952185819"
+ENTRY_NAMA = "entry.444514235"
 
-    # Contoh Penulisan NIK
-    st.markdown("<p style='text-align: center; color: #475569; font-weight: 800; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
+with st.form(key="form_absen_test", clear_on_submit=True):
+    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
+    submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
-    # URL & Entry Google Form versi TEST
-    FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
-    ENTRY_NIK = "entry.952185819"
-    ENTRY_NAMA = "entry.444514235"  # ID Entry Kolom Nama
-
-    # Form Input Absen
-    with st.form(key="form_absen_test", clear_on_submit=True):
-        nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
-        submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
-
-    # Auto-Focus Javascript
-    components.html(
-        """
-        <script>
-            const focusInput = () => {
-                const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-                if (inputs.length > 0) {
-                    inputs[0].focus();
-                }
-            };
-            setTimeout(focusInput, 300);
-        </script>
-        """,
-        height=0,
-        width=0
-    )
-
-    # --- PROSES KIRIM ABSEN & CEK DATABASE ---
-    if submit_button:
-        nik_clean = nik.strip()
-        if nik_clean:
-            # Cari nama karyawan berdasarkan NIK
-            nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
-
-            # Payload berisi NIK dan Nama sekaligus
-            payload = {
-                ENTRY_NIK: nik_clean,
-                ENTRY_NAMA: nama_karyawan
+components.html(
+    """
+    <script>
+        const focusInput = () => {
+            const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+            if (inputs.length > 0) {
+                inputs[0].focus();
             }
+        };
+        setTimeout(focusInput, 300);
+    </script>
+    """,
+    height=0,
+    width=0
+)
 
-            try:
-                response = requests.post(FORM_URL, data=payload)
-                if response.status_code == 200:
-                    if nama_karyawan != "Nama Tidak Ditemukan":
-                        st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
-                    else:
-                        st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
+if submit_button:
+    nik_clean = nik.strip()
+    if nik_clean:
+        nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
+        payload = {
+            ENTRY_NIK: nik_clean,
+            ENTRY_NAMA: nama_karyawan
+        }
+        try:
+            response = requests.post(FORM_URL, data=payload)
+            if response.status_code == 200:
+                if nama_karyawan != "Nama Tidak Ditemukan":
+                    st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
                 else:
-                    st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
-            except Exception as e:
-                st.error(f"Terjadi kesalahan koneksi: {e}")
-        else:
-            st.warning("NIK tidak boleh kosong!")
+                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
+            else:
+                st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
+        except Exception as e:
+            st.error(f"Terjadi kesalahan koneksi: {e}")
+    else:
+        st.warning("NIK tidak boleh kosong!")
 
-    st.write("")
-    st.write("")
+st.write("")
+st.write("")
 
-    footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
-    st.markdown(footer_html, unsafe_allow_html=True)
+footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
+st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# HALAMAN 2: PENAMBAHAN KODE BARU (ADMIN MANAGEMENT)
+# MENU ADMIN DI BAGIAN BOLA KANAN / BAWAH
 # ==============================================================================
-elif menu == "⚙️ Admin Karyawan":
-    st.markdown("<h2 style='text-align: center; color: #1e293b;'>⚙️ Kelola Master Data Karyawan</h2>", unsafe_allow_html=True)
+st.divider()
 
+with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
     if "admin_logged_in" not in st.session_state:
         st.session_state.admin_logged_in = False
 
@@ -232,11 +208,10 @@ elif menu == "⚙️ Admin Karyawan":
                 else:
                     st.error("Password salah!")
     else:
+        st.write("### 🔑 Portal Admin Karyawan")
         if st.button("🔒 Logout Admin"):
             st.session_state.admin_logged_in = False
             st.rerun()
-
-        st.divider()
 
         tab_tambah, tab_daftar = st.tabs(["➕ Tambah Karyawan Baru", "📋 Daftar Karyawan"])
 
