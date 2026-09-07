@@ -94,6 +94,7 @@ st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px
 # URL & Entry Google Form versi TEST
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
 ENTRY_NIK = "entry.952185819"
+ENTRY_NAMA = "entry.444514235"  # ID Entry Kolom Nama
 
 # Form Input Absen
 with st.form(key="form_absen_test", clear_on_submit=True):
@@ -121,16 +122,22 @@ components.html(
 if submit_button:
     nik_clean = nik.strip()
     if nik_clean:
-        nama_karyawan = db_karyawan.get(nik_clean)
+        # Cari nama karyawan berdasarkan NIK
+        nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
 
-        payload = {ENTRY_NIK: nik_clean}
+        # Payload berisi NIK dan Nama sekaligus
+        payload = {
+            ENTRY_NIK: nik_clean,
+            ENTRY_NAMA: nama_karyawan
+        }
+
         try:
             response = requests.post(FORM_URL, data=payload)
             if response.status_code == 200:
-                if nama_karyawan:
+                if nama_karyawan != "Nama Tidak Ditemukan":
                     st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
                 else:
-                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama belum terdaftar)*")
+                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
             else:
                 st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
         except Exception as e:
