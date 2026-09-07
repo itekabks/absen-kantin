@@ -92,7 +92,7 @@ custom_css = """
 <style>
     /* Styling Form Glassmorphism */
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.88) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
         backdrop-filter: blur(8px);
         border-radius: 20px;
         padding: 30px;
@@ -100,7 +100,15 @@ custom_css = """
         border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* Styling Tombol Kirim Mode Test */
+    /* FIX TEKS LABEL INPUT DARI SEMUA FORM (NIK, NAMA, PASSWORD) */
+    [data-testid="stForm"] label, 
+    [data-testid="stForm"] label p {
+        color: #0f172a !important; /* Warna Teks Hitam Pekat */
+        font-weight: 700 !important;
+        font-size: 1.05rem !important;
+    }
+
+    /* Styling Tombol Kirim */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
@@ -110,7 +118,7 @@ custom_css = """
     }
 
     /* FIX NOTIFIKASI SUKSES (st.success) */
-    [data-testid="stAlertContainer"] [data-baseweb="notification"] {
+    div[data-testid="stAlertContainer"] [data-baseweb="notification"] {
         background-color: #064e3b !important;
         border: 2px solid #10b981 !important;
         border-radius: 14px !important;
@@ -118,9 +126,10 @@ custom_css = """
         box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
     }
 
-    [data-testid="stAlertContainer"] * {
+    /* Teks Notifikasi Sukses */
+    div[data-testid="stAlertContainer"] [data-baseweb="notification"] * {
         color: #ffffff !important;
-        font-size: 1.3rem !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
     }
 </style>
