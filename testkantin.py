@@ -29,39 +29,49 @@ def load_data_karyawan():
     return {}
 
 def update_karyawan_to_github(dict_karyawan, commit_message):
-    """Fungsi untuk update & commit file karyawan.csv langsung ke GitHub"""
-    if not GITHUB_TOKEN or not REPO_NAME:
+    """Fungsi update & commit file karyawan.csv ke GitHub (Auto Clean Token)"""
+    token = GITHUB_TOKEN.strip().replace('"', '').replace("'", "")
+    repo = REPO_NAME.strip().replace('"', '').replace("'", "")
+    
+    if not token or not repo:
         return False, "Token GitHub atau REPO_NAME belum dikonfigurasi di Secrets!"
 
+    if token.startswith("github_pat_") or token.startswith("ghp_"):
+        auth_header = f"token {token}"
+    else:
+        auth_header = f"Bearer {token}"
+
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": auth_header,
         "Accept": "application/vnd.github.v3+json"
     }
-    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
-
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        return False, f"Gagal mengakses GitHub: {res.json().get('message', '')}"
-    
-    sha = res.json()['sha']
+    url = f"https://api.github.com/repos/{repo}/contents/{FILE_PATH}"
 
     df_new = pd.DataFrame(list(dict_karyawan.items()), columns=['nik', 'nama'])
     csv_content = df_new.to_csv(index=False)
-
     content_encoded = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
+
+    res = requests.get(url, headers=headers)
+    
+    if res.status_code == 401:
+        return False, "Gagal mengakses GitHub: Bad credentials (Token tidak valid / expired)"
 
     payload = {
         "message": commit_message,
-        "content": content_encoded,
-        "sha": sha
+        "content": content_encoded
     }
 
+    if res.status_code == 200:
+        payload["sha"] = res.json()['sha']
+    elif res.status_code != 404:
+        return False, f"Gagal mengakses GitHub: {res.json().get('message', '')}"
+
     put_res = requests.put(url, headers=headers, json=payload)
-    if put_res.status_code == 200:
+    if put_res.status_code in [200, 201]:
         st.cache_data.clear()
         return True, "Berhasil memperbarui data di GitHub!"
     else:
-        return False, f"Gagal update GitHub: {put_res.json().get('message', '')}"
+        return False, f"Gagal update GitHub ({put_res.status_code}): {put_res.json().get('message', '')}"
 
 db_karyawan = load_data_karyawan()
 
@@ -149,7 +159,7 @@ ENTRY_NAMA = "entry.444514235"
 
 with st.form(key="form_absen_test", clear_on_submit=True):
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
-    submit_button = st.form_submit_button(label="ABSEN", use_container_width=True)
+    submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
 components.html(
     """
@@ -169,7 +179,11 @@ components.html(
 
 if submit_button:
     nik_clean = nik.strip()
-    if nik_clean:
+    if not nik_clean:
+        st.warning("NIK tidak boleh kosong!")
+    elif not nik_clean.isdigit():
+        st.error("⚠️ NIK hanya boleh berisi angka! (Tidak boleh ada huruf atau simbol)")
+    else:
         nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
         payload = {
             ENTRY_NIK: nik_clean,
@@ -186,8 +200,6 @@ if submit_button:
                 st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
         except Exception as e:
             st.error(f"Terjadi kesalahan koneksi: {e}")
-    else:
-        st.warning("NIK tidak boleh kosong!")
 
 st.write("")
 st.write("")
@@ -196,7 +208,7 @@ footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; 
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# MENU ADMIN DI BAGIAN BOLA KANAN / BAWAH
+# MENU ADMIN
 # ==============================================================================
 st.divider()
 
@@ -231,7 +243,11 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                 submit_add = st.form_submit_button("Simpan Karyawan ke GitHub")
 
             if submit_add:
-                if new_nik and new_nama:
+                if not new_nik or not new_nama:
+                    st.warning("Mohon isi NIK dan Nama secara lengkap!")
+                elif not new_nik.isdigit():
+                    st.error("⚠️ NIK Karyawan Baru hanya boleh berupa angka!")
+                else:
                     if new_nik in db_karyawan:
                         st.warning(f"⚠️ NIK **{new_nik}** sudah terdaftar atas nama **{db_karyawan[new_nik]}**!")
                     else:
@@ -246,8 +262,6 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                                 st.success(f"✅ Berhasil menambahkan **{new_nama}** ({new_nik}) ke GitHub!")
                             else:
                                 st.error(msg)
-                else:
-                    st.warning("Mohon isi NIK dan Nama secara lengkap!")
 
         with tab_daftar:
             st.write(f"Total Karyawan Terdaftar: **{len(db_karyawan)} Karyawan**")
