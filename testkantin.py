@@ -6,17 +6,16 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="[TEST] Absensi Kantin Eka Bekasi", 
-    page_icon="🧪",
+    page_title="Absensi Kantin Eka Bekasi", 
+    page_icon="📌",
     layout="centered"
 )
 
 # --- FUNGSI BACA DATABASE KARYAWAN FROM CSV (MODE TEST) ---
-@st.cache_data(ttl=10) # Cache diperbarui tiap 10 detik agar responsif saat edit CSV
+@st.cache_data(ttl=10)
 def load_data_karyawan():
     file_path = "karyawan.csv"
     if os.path.exists(file_path):
-        # Membaca NIK sebagai string/teks agar nol di depan tidak hilang
         df = pd.read_csv(file_path, dtype={'nik': str})
         df['nik'] = df['nik'].astype(str).str.strip()
         df['nama'] = df['nama'].astype(str).str.strip()
@@ -60,7 +59,7 @@ custom_css = """
         border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* Styling Tombol Kirim Mode Test (Biru) */
+    /* Styling Tombol Kirim Mode Test */
     .stButton button {
         border-radius: 10px;
         background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
@@ -69,22 +68,18 @@ custom_css = """
         font-weight: bold;
     }
 
-    /* Custom Notifikasi Sukses (st.success) - Warna Jelas & Font Besar */
-    div[data-testid="stNotification"] {
-        border-radius: 12px !important;
+    /* FIX NOTIFIKASI SUKSES (st.success) */
+    /* 1. Latar Belakang Kotak Notifikasi Berwarna Hijau Solid & Gelap */
+    [data-testid="stAlertContainer"] [data-baseweb="notification"] {
+        background-color: #064e3b !important; /* Hijau Gelap Solid */
+        border: 2px solid #10b981 !important;
+        border-radius: 14px !important;
         padding: 16px !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
     }
 
-    div[data-testid="stNotification"][data-test-script-type="success"] {
-        background-color: #059669 !important; /* Hijau Emerald Solid */
-        border: 1px solid #10b981 !important;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important;
-    }
-
-    /* Memperbesar Font Teks di Dalam Notifikasi Sukses */
-    div[data-testid="stNotification"][data-test-script-type="success"] p,
-    div[data-testid="stNotification"][data-test-script-type="success"] span,
-    div[data-testid="stNotification"][data-test-script-type="success"] div {
+    /* 2. Teks Putih Solid, Besar, dan Tebal agar Sangat Jelas Dibaca */
+    [data-testid="stAlertContainer"] * {
         color: #ffffff !important;
         font-size: 1.3rem !important; /* Ukuran font diperbesar */
         font-weight: 700 !important;   /* Cetak tebal */
@@ -93,8 +88,8 @@ custom_css = """
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# Header Mode Test
-st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>🧪 [TESTING] Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+# Judul Utama
+st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
 # URL & Entry Google Form versi TEST
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
@@ -103,7 +98,7 @@ ENTRY_NIK = "entry.952185819"
 # Form Input Absen
 with st.form(key="form_absen_test", clear_on_submit=True):
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
-    submit_button = st.form_submit_button(label="Kirim Absen (TEST)", use_container_width=True)
+    submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
 # Auto-Focus Javascript
 components.html(
@@ -126,7 +121,6 @@ components.html(
 if submit_button:
     nik_clean = nik.strip()
     if nik_clean:
-        # Cek apakah NIK ada di database CSV
         nama_karyawan = db_karyawan.get(nik_clean)
 
         payload = {ENTRY_NIK: nik_clean}
@@ -134,11 +128,9 @@ if submit_button:
             response = requests.post(FORM_URL, data=payload)
             if response.status_code == 200:
                 if nama_karyawan:
-                    # Menampilkan Nama Karyawan jika terdaftar
                     st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
                 else:
-                    # Jika NIK belum terdaftar di database CSV
-                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama belum terdaftar di database)*")
+                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama belum terdaftar)*")
             else:
                 st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
         except Exception as e:
@@ -149,6 +141,5 @@ if submit_button:
 st.write("")
 st.write("")
 
-# Footer Mode Test
-footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">[TEST ENVIRONMENT] IT Eka Bekasi</div>'
+footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
