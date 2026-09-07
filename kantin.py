@@ -16,6 +16,7 @@ GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "ghp_W0DX9Z3ToxUenESnXd94EwNuLrlJy
 REPO_NAME = st.secrets.get("REPO_NAME", "itekabks/absen-kantin")
 FILE_PATH = "karyawan.csv"
 ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
+RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit?pli=1#responses"
 
 # --- FUNGSI BACA DATABASE KARYAWAN FROM CSV (MODE TEST) ---
 @st.cache_data(ttl=10)
@@ -158,7 +159,6 @@ ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
 with st.form(key="form_absen_test", clear_on_submit=True):
-    # max_chars=8 membatasi ketikan maksimal 8 karakter di layar
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):", max_chars=8)
     submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
 
@@ -185,7 +185,6 @@ if submit_button:
     elif not nik_clean.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka! (Tidak boleh ada huruf atau simbol)")
     elif len(nik_clean) != 8:
-        # Pengecekan wajib 8 digit
         st.error(f"⚠️ NIK harus terdiri dari **8 karakter/digit**! (Anda memasukkan {len(nik_clean)} digit)")
     else:
         nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
@@ -238,7 +237,12 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
             st.session_state.admin_logged_in = False
             st.rerun()
 
-        tab_tambah, tab_daftar = st.tabs(["➕ Tambah Karyawan Baru", "📋 Daftar Karyawan"])
+        # MENAMBAHKAN TAB KETIGA UNTUK TAUTAN DATA RESPONSES
+        tab_tambah, tab_daftar, tab_respon = st.tabs([
+            "➕ Tambah Karyawan Baru", 
+            "📋 Daftar Karyawan", 
+            "📊 Data Absensi (Google Form)"
+        ])
 
         with tab_tambah:
             with st.form("form_tambah_karyawan", clear_on_submit=True):
@@ -276,3 +280,9 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                 st.dataframe(df_karyawan, use_container_width=True)
             else:
                 st.info("Belum ada data karyawan.")
+
+        # ISI TAB KETIGA (LINK DATA RESPON)
+        with tab_respon:
+            st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
+            st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin langsung dari Google Forms.")
+            st.link_button("🔗 Buka Google Form Responses", RESPONSES_URL, use_container_width=True)
