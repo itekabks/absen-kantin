@@ -1,3 +1,4 @@
+from datetime import datetime
 import base64
 import os
 import pandas as pd
@@ -11,14 +12,47 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CONFIGURATION VIA STREAMLIT SECRETS ---
+# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
 GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "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")
 REPO_NAME = st.secrets.get("REPO_NAME", "itekabks/absen-kantin")
 FILE_PATH = "karyawan.csv"
 ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
 RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit?pli=1#responses"
 
-# --- FUNGSI BACA DATABASE KARYAWAN FROM CSV (MODE TEST) ---
+# ⚠️ MASUKKAN ID GOOGLE SHEET REKAP FORM ANDA DI SINI ⚠️
+SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
+
+# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI ---
+def is_already_absent_today(nik):
+    """Mengecek apakah NIK sudah pernah absen pada tanggal hari ini dari Google Sheet"""
+    if SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
+        return False # Jika ID belum diset, lewati validasi
+        
+    csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/gviz/tq?tqx=out:csv"
+    try:
+        # Buka data CSV dari publik Google Sheet
+        df_responses = pd.read_csv(csv_url)
+        
+        if df_responses.empty:
+            return False
+            
+        # Ambil kolom Timestamp/Waktu dan NIK (Kolom 0 & Kolom 1)
+        df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
+        
+        today_date = datetime.now().date()
+        
+        # Filter berdasarkan NIK dan Tanggal Hari Ini
+        already_exists = df_responses[
+            (df_responses.iloc[:, 1].astype(str).str.strip() == str(nik).strip()) & 
+            (df_responses.iloc[:, 0].dt.date == today_date)
+        ]
+        
+        return not already_exists.empty
+    except Exception as e:
+        # Jika terjadi kendala akses sheet, izinkan absen demi kelancaran sistem
+        return False
+
+# --- FUNGSI BACA DATABASE KARYAWAN FROM CSV ---
 @st.cache_data(ttl=10)
 def load_data_karyawan():
     file_path = "karyawan.csv"
@@ -30,7 +64,6 @@ def load_data_karyawan():
     return {}
 
 def update_karyawan_to_github(dict_karyawan, commit_message):
-    """Fungsi update & commit file karyawan.csv ke GitHub (Auto Clean Token)"""
     token = GITHUB_TOKEN.strip().replace('"', '').replace("'", "")
     repo = REPO_NAME.strip().replace('"', '').replace("'", "")
     
@@ -55,7 +88,7 @@ def update_karyawan_to_github(dict_karyawan, commit_message):
     res = requests.get(url, headers=headers)
     
     if res.status_code == 401:
-        return False, "Gagal mengakses GitHub: Bad credentials (Token tidak valid / expired)"
+        return False, "Gagal mengakses GitHub: Bad credentials"
 
     payload = {
         "message": commit_message,
@@ -128,11 +161,7 @@ custom_css = """
         font-weight: bold;
     }
 
-    /* ================================================================= */
-    /* STYLING NOTIFIKASI UMUM (SUKSES, ERROR, WARNING)                   */
-    /* ================================================================= */
-    
-    /* Base Container Alert */
+    /* STYLING NOTIFIKASI UMUM (SUKSES, ERROR, WARNING) */
     div[data-testid="stAlert"] {
         border-radius: 16px !important;
         padding: 20px !important;
@@ -143,7 +172,6 @@ custom_css = """
         background-color: transparent !important;
     }
 
-    /* Format Teks Notifikasi (Putih, Besar, Tebal) */
     div[data-testid="stAlert"] * {
         color: #ffffff !important;
         font-size: 1.35rem !important;
@@ -151,7 +179,6 @@ custom_css = """
         line-height: 1.5 !important;
     }
 
-    /* Format Ukuran Ikon Alert */
     div[data-testid="stAlert"] svg {
         width: 32px !important;
         height: 32px !important;
@@ -173,18 +200,18 @@ custom_css = """
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("❌")),
     div[data-testid="stAlert"][aria-label*="error"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
-        background-color: #7f1d1d !important; /* Merah pekat */
-        border: 2px solid #f87171 !important; /* Border merah terang */
+        background-color: #7f1d1d !important;
+        border: 2px solid #f87171 !important;
     }
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) svg {
         fill: #fca5a5 !important;
     }
 
-    /* 3. STYLING NOTIFIKASI PERINGATAN (st.warning) -> Kuning/Cokelat Tua Solid */
+    /* 3. STYLING NOTIFIKASI PERINGATAN (st.warning) -> Cokelat/Kuning Tua Solid */
     div[data-testid="stAlert"][aria-label*="warning"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
-        background-color: #78350f !important; /* Cokelat/Kuning pekat */
-        border: 2px solid #fbbf24 !important; /* Border kuning terang */
+        background-color: #78350f !important;
+        border: 2px solid #fbbf24 !important;
     }
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) svg {
         fill: #fde047 !important;
@@ -233,22 +260,26 @@ if submit_button:
     elif len(nik_clean) != 8:
         st.error(f"⚠️ NIK harus terdiri dari 8 karakter/digit! (Anda memasukkan {len(nik_clean)} digit)")
     else:
-        nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
-        payload = {
-            ENTRY_NIK: nik_clean,
-            ENTRY_NAMA: nama_karyawan
-        }
-        try:
-            response = requests.post(FORM_URL, data=payload)
-            if response.status_code == 200:
-                if nama_karyawan != "Nama Tidak Ditemukan":
-                    st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
+        # CEK VALIDASI ABSEN DOUBLE DI HARI YANG SAMA
+        if is_already_absent_today(nik_clean):
+            st.error(f"❌ NIK {nik_clean} SUDAH ABSEN HARI INI! (Tidak dapat absen 2 kali)")
+        else:
+            nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
+            payload = {
+                ENTRY_NIK: nik_clean,
+                ENTRY_NAMA: nama_karyawan
+            }
+            try:
+                response = requests.post(FORM_URL, data=payload)
+                if response.status_code == 200:
+                    if nama_karyawan != "Nama Tidak Ditemukan":
+                        st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
+                    else:
+                        st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
                 else:
-                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
-            else:
-                st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
-        except Exception as e:
-            st.error(f"❌ Terjadi kesalahan koneksi: {e}")
+                    st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
+            except Exception as e:
+                st.error(f"❌ Terjadi kesalahan koneksi: {e}")
 
 st.write("")
 st.write("")
