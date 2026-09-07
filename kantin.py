@@ -111,10 +111,10 @@ custom_css = """
         border: 1px solid rgba(255,255,255,0.4);
     }
 
-    /* FIX TEKS LABEL INPUT DARI SEMUA FORM (NIK, NAMA, PASSWORD) */
+    /* FIX TEKS LABEL INPUT DARI SEMUA FORM */
     [data-testid="stForm"] label, 
     [data-testid="stForm"] label p {
-        color: #0f172a !important; /* Warna Teks Hitam Pekat */
+        color: #0f172a !important;
         font-weight: 700 !important;
         font-size: 1.05rem !important;
     }
@@ -128,20 +128,66 @@ custom_css = """
         font-weight: bold;
     }
 
-    /* FIX NOTIFIKASI SUKSES (st.success) */
-    div[data-testid="stAlertContainer"] [data-baseweb="notification"] {
-        background-color: #064e3b !important;
-        border: 2px solid #10b981 !important;
-        border-radius: 14px !important;
-        padding: 16px !important;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+    /* ================================================================= */
+    /* STYLING NOTIFIKASI UMUM (SUKSES, ERROR, WARNING)                   */
+    /* ================================================================= */
+    
+    /* Base Container Alert */
+    div[data-testid="stAlert"] {
+        border-radius: 16px !important;
+        padding: 20px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
     }
 
-    /* Teks Notifikasi Sukses */
-    div[data-testid="stAlertContainer"] [data-baseweb="notification"] * {
+    div[data-testid="stAlert"] [data-baseweb="notification"] {
+        background-color: transparent !important;
+    }
+
+    /* Format Teks Notifikasi (Putih, Besar, Tebal) */
+    div[data-testid="stAlert"] * {
         color: #ffffff !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
+        font-size: 1.35rem !important;
+        font-weight: 800 !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Format Ukuran Ikon Alert */
+    div[data-testid="stAlert"] svg {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* 1. STYLING NOTIFIKASI SUKSES (st.success) -> Hijau Tua Solid */
+    div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("✅")),
+    div[data-testid="stAlert"][aria-label*="success"],
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
+        background-color: #064e3b !important;
+        border: 2px solid #10b981 !important;
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) svg {
+        fill: #34d399 !important;
+    }
+
+    /* 2. STYLING NOTIFIKASI GAGAL (st.error) -> Merah Tua Solid */
+    div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("⚠️")),
+    div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("❌")),
+    div[data-testid="stAlert"][aria-label*="error"],
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
+        background-color: #7f1d1d !important; /* Merah pekat */
+        border: 2px solid #f87171 !important; /* Border merah terang */
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) svg {
+        fill: #fca5a5 !important;
+    }
+
+    /* 3. STYLING NOTIFIKASI PERINGATAN (st.warning) -> Kuning/Cokelat Tua Solid */
+    div[data-testid="stAlert"][aria-label*="warning"],
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
+        background-color: #78350f !important; /* Cokelat/Kuning pekat */
+        border: 2px solid #fbbf24 !important; /* Border kuning terang */
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) svg {
+        fill: #fde047 !important;
     }
 </style>
 """
@@ -181,11 +227,11 @@ components.html(
 if submit_button:
     nik_clean = nik.strip()
     if not nik_clean:
-        st.warning("NIK tidak boleh kosong!")
+        st.warning("⚠️ NIK tidak boleh kosong!")
     elif not nik_clean.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka! (Tidak boleh ada huruf atau simbol)")
     elif len(nik_clean) != 8:
-        st.error(f"⚠️ NIK harus terdiri dari **8 karakter/digit**! (Anda memasukkan {len(nik_clean)} digit)")
+        st.error(f"⚠️ NIK harus terdiri dari 8 karakter/digit! (Anda memasukkan {len(nik_clean)} digit)")
     else:
         nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
         payload = {
@@ -202,7 +248,7 @@ if submit_button:
             else:
                 st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
         except Exception as e:
-            st.error(f"Terjadi kesalahan koneksi: {e}")
+            st.error(f"❌ Terjadi kesalahan koneksi: {e}")
 
 st.write("")
 st.write("")
@@ -237,7 +283,6 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
             st.session_state.admin_logged_in = False
             st.rerun()
 
-        # MENAMBAHKAN TAB KETIGA UNTUK TAUTAN DATA RESPONSES
         tab_tambah, tab_daftar, tab_respon = st.tabs([
             "➕ Tambah Karyawan Baru", 
             "📋 Daftar Karyawan", 
@@ -256,10 +301,10 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                 elif not new_nik.isdigit():
                     st.error("⚠️ NIK Karyawan Baru hanya boleh berupa angka!")
                 elif len(new_nik) != 8:
-                    st.error(f"⚠️ NIK Karyawan Baru harus tepat **8 digit**! (Anda memasukkan {len(new_nik)} digit)")
+                    st.error(f"⚠️ NIK Karyawan Baru harus tepat 8 digit! (Anda memasukkan {len(new_nik)} digit)")
                 else:
                     if new_nik in db_karyawan:
-                        st.warning(f"⚠️ NIK **{new_nik}** sudah terdaftar atas nama **{db_karyawan[new_nik]}**!")
+                        st.warning(f"⚠️ NIK {new_nik} sudah terdaftar atas nama {db_karyawan[new_nik]}!")
                     else:
                         db_karyawan[new_nik] = new_nama
                         
@@ -269,7 +314,7 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
                                 f"Tambah karyawan baru: {new_nama} ({new_nik})"
                             )
                             if success:
-                                st.success(f"✅ Berhasil menambahkan **{new_nama}** ({new_nik}) ke GitHub!")
+                                st.success(f"✅ Berhasil menambahkan {new_nama} ({new_nik}) ke GitHub!")
                             else:
                                 st.error(msg)
 
@@ -281,7 +326,6 @@ with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
             else:
                 st.info("Belum ada data karyawan.")
 
-        # ISI TAB KETIGA (LINK DATA RESPON)
         with tab_respon:
             st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
             st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin langsung dari Google Forms.")
