@@ -134,58 +134,32 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Card/Glassmorphism Container */
-    [data-testid="stForm"] {
-        background: #ffffff !important;
-        border-radius: 20px !important;
-        padding: 35px 30px !important;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
-        border: 1px solid #e2e8f0 !important;
+    /* Card Container UI */
+    .stMainBlockContainer {
+        max-width: 650px !important;
     }
 
-    /* Label Input */
-    form[key="form_absen_test"] label, 
-    form[key="form_absen_test"] label p {
-        color: #1e293b !important;
-        font-weight: 800 !important;
-        font-size: 1.3rem !important;
-        text-align: center !important;
-        width: 100% !important;
-        display: block !important;
-        margin-bottom: 15px !important;
-    }
-
-    /* Kotak Input NIK Clean & Rapi */
+    /* Input Field Styling */
     div[data-testid="stTextInput"] input {
-        background-color: #f8fafc !important; 
+        background-color: #ffffff !important; 
         color: #0f172a !important;            
         font-size: 2.2rem !important;          
         font-weight: 800 !important;         
         height: 70px !important;             
         text-align: center !important;       
-        letter-spacing: 5px !important;      
-        border-radius: 12px !important;
-        border: 2px solid #cbd5e1 !important; 
-        box-shadow: none !important;
-        outline: none !important;
+        letter-spacing: 4px !important;      
+        border-radius: 14px !important;
+        border: 2.5px solid #cbd5e1 !important; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
     }
 
-    /* Efek Fokus Input */
+    /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
-        background-color: #ffffff !important;
         border-color: #2563eb !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15) !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
     }
 
-    /* Sembunyikan Tombol Submit Secara Total Tanpa Sisa Box */
-    form[key="form_absen_test"] [data-testid="stFormSubmitButton"] {
-        display: none !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* Hilangkan Helper Text 'Press Enter to submit' agar Tampilan Bersih */
+    /* Sembunyikan Helper Text Bawaan */
     div[data-testid="stTextInput"] small,
     div[data-testid="stTextInput"] div[data-aria-live="polite"] {
         display: none !important;
@@ -195,7 +169,7 @@ custom_css = """
     div[data-testid="stAlert"] {
         border-radius: 14px !important;
         padding: 20px !important;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
     }
 
     div[data-testid="stAlert"] *,
@@ -233,10 +207,15 @@ FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVu
 ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
-with st.form(key="form_absen_test", clear_on_submit=True):
-    nik = st.text_input("Silakan Scan / Ketik NIK Anda:", max_chars=8, placeholder="00000000")
-    submit_button = st.form_submit_button(label="ABSEN")
+# Input teks langsung (Tanpa st.form / Tanpa Tombol Submit)
+nik_input = st.text_input(
+    label="Silakan Scan / Ketik NIK Anda (Lalu tekan Enter):",
+    max_chars=8, 
+    placeholder="00000000",
+    key="nik_input_key"
+)
 
+# JavaScript agar kursor otomatis mengunci ke dalam kotak input saat dibuka
 components.html(
     """
     <script>
@@ -253,8 +232,9 @@ components.html(
     width=0
 )
 
-if submit_button:
-    nik_clean = nik.strip()
+# Proses otomatis dijalankan saat pengguna menekan Enter
+if nik_input:
+    nik_clean = nik_input.strip()
     if not nik_clean:
         st.warning("⚠️ NIK tidak boleh kosong!")
     elif not nik_clean.isdigit():
