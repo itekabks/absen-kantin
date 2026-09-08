@@ -139,24 +139,24 @@ custom_css = """
         max-width: 650px !important;
     }
 
-    /* Input Field Styling */
+    /* Input Field Styling - DIKEMBANGKAN LEBIH BESAR */
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 2.5rem !important;          
-        font-weight: 800 !important;         
-        height: 75px !important;             
+        font-size: 3.2rem !important;          /* Diperbesar dari 2.5rem ke 3.2rem */
+        font-weight: 900 !important;         
+        height: 85px !important;             /* Tinggi kotak diperbesar sedikit */
         text-align: center !important;       
-        letter-spacing: 5px !important;      
+        letter-spacing: 6px !important;      
         border-radius: 14px !important;
-        border: 2.5px solid #2563eb !important; 
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        border: 3px solid #2563eb !important; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
     }
 
     /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
         border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
+        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.3) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan & Label standar */
@@ -165,32 +165,34 @@ custom_css = """
         display: none !important;
     }
 
-    /* Notifikasi Hasil Absen */
+    /* Notifikasi Hasil Absen - DIPERBESAR DAN DIPERJELAS */
     div[data-testid="stAlert"] {
         border-radius: 14px !important;
-        padding: 20px !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+        padding: 22px !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
     }
 
     div[data-testid="stAlert"] *,
     div[data-testid="stAlert"] p {
         color: #ffffff !important;
-        font-size: 1.4rem !important;
+        font-size: 1.8rem !important;          /* Diperbesar dari 1.4rem ke 1.8rem */
         font-weight: 800 !important;
+        line-height: 1.3 !important;
+        text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4) !important; /* Efek tebal agar terbaca sangat jelas */
     }
 
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
-        background-color: #059669 !important; 
+        background-color: #047857 !important; 
         border: none !important;
     }
 
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
-        background-color: #dc2626 !important; 
+        background-color: #b91c1c !important; 
         border: none !important;
     }
 
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
-        background-color: #d97706 !important; 
+        background-color: #b45309 !important; 
         border: none !important;
     }
 </style>
@@ -203,14 +205,12 @@ st.markdown(custom_css, unsafe_allow_html=True)
 st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 20px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
-# 🔍 TEKS PETUNJUK DIBUAT JAUH LEBIH BESAR & JELAS DI ATAS KOTAK INPUT
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
-# Callback untuk memproses NIK dan langsung mengosongkan kotak input
 def handle_nik_submit():
     input_val = st.session_state.nik_input_key.strip()
     if input_val:
@@ -220,7 +220,6 @@ def handle_nik_submit():
 if "last_submitted_nik" not in st.session_state:
     st.session_state.last_submitted_nik = ""
 
-# Input Box Tanpa Label (Menggunakan Teks HTML Custom di atas)
 st.text_input(
     label="nik_label_hidden",
     label_visibility="collapsed",
