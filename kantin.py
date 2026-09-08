@@ -29,7 +29,6 @@ def is_already_absent_today(nik):
     if SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
         return False
         
-    # Parameter &nocache= digunakan untuk memaksa fetching data paling segar
     csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
     
     try:
@@ -38,7 +37,6 @@ def is_already_absent_today(nik):
         if df_responses.empty:
             return False
             
-        # Format tanggal & penyesuaian string NIK
         df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
         today_date = datetime.now().date()
         
@@ -141,69 +139,59 @@ custom_css = """
         background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(8px);
         border-radius: 20px;
-        padding: 35px;
+        padding: 40px 30px 25px 30px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         border: 1px solid rgba(255,255,255,0.6);
     }
 
-    /* FIX TEKS LABEL INPUT DARI SEMUA FORM */
-    [data-testid="stForm"] label, 
-    [data-testid="stForm"] label p {
+    /* FIX TEKS LABEL INPUT FORM UTAMA */
+    form[key="form_absen_test"] label, 
+    form[key="form_absen_test"] label p {
         color: #0f172a !important;
         font-weight: 800 !important;
-        font-size: 1.25rem !important;
+        font-size: 1.5rem !important; /* Label judul input diperbesar */
+        margin-bottom: 12px !important;
     }
 
-    /* 🔍 DENGAN BACKGROUND PUTIH SERTA TEKS GELAP BIAR SANGAT JELAS */
+    /* 🔍 KOTAK INPUT DIBUAT JAUH LEBIH BESAR & JELAS */
     div[data-testid="stTextInput"] input {
-        background-color: #ffffff !important; /* Memaksa latar belakang putih padat */
-        color: #0f172a !important;            /* Warna teks hitam gelap */
-        font-size: 2.2rem !important;          /* Ukuran angka NIK sangat besar */
-        font-weight: 900 !important;         /* Angka sangat tebal */
-        height: 70px !important;             /* Kotak lebih tinggi */
-        text-align: center !important;       /* Angka rata tengah */
-        letter-spacing: 4px !important;      /* Jarak antar angka lebih renggang */
-        border-radius: 12px !important;
-        border: 2.5px solid #2563eb !important; /* Bingkai biru jelas */
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
+        background-color: #ffffff !important; 
+        color: #0f172a !important;            
+        font-size: 2.8rem !important;          /* Angka NIK SANGAT BESAR */
+        font-weight: 900 !important;         
+        height: 85px !important;             /* Kotak input sangat tinggi */
+        text-align: center !important;       
+        letter-spacing: 6px !important;      /* Jarak antar digit lebih lebar */
+        border-radius: 16px !important;
+        border: 3px solid #2563eb !important; 
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.08) !important;
     }
 
-    /* KOTAK INPUT SAAT DIKLIK/FOKUS */
+    /* KOTAK INPUT SAAT FOKUS */
     div[data-testid="stTextInput"] input:focus {
         background-color: #ffffff !important;
         color: #0f172a !important;
         border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3) !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35) !important;
     }
 
-    /* FIX WARNA HINT HELPER TEXT (Press Enter to submit form) */
+    /* HINT HELPER TEXT (Press Enter to submit form) */
     div[data-testid="stTextInput"] small,
     div[data-testid="stTextInput"] div[data-aria-live="polite"] {
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
     }
 
-    /* MEMBESARKAN & MEMPERJELAS TOMBOL ABSEN */
-    .stButton button {
-        border-radius: 12px !important;
-        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        font-weight: 800 !important;
-        height: 60px !important;
-        font-size: 1.4rem !important;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+    /* Sembunyikan tombol submit bawaan pada form utama (karena tombol ABSEN dihapus) */
+    form[key="form_absen_test"] div[data-testid="stFormSubmitButton"] {
+        display: none !important;
     }
 
-    .stButton button:hover {
-        background: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%) !important;
-        color: #ffffff !important;
-    }
-
-    /* 🟢🔴 FIX NOTIFIKASI SUKSES / ERROR AGAR SOLID DAN JELAS BERWARNA */
+    /* 🟢🔴 NOTIFIKASI HASIL ABSEN (LEBIH BESAR & TEBAL) */
     div[data-testid="stAlert"] {
-        border-radius: 16px !important;
-        padding: 20px !important;
+        border-radius: 18px !important;
+        padding: 24px !important;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
         opacity: 1 !important;
     }
@@ -212,19 +200,18 @@ custom_css = """
         background-color: transparent !important;
     }
 
-    /* TEKS NOTIFIKASI KONTRASTING SANGAT BOLD */
     div[data-testid="stAlert"] *,
     div[data-testid="stAlert"] p,
     div[data-testid="stAlert"] span {
         color: #ffffff !important;
-        font-size: 1.4rem !important;
+        font-size: 1.6rem !important;    /* Ukuran teks notifikasi sangat besar */
         font-weight: 800 !important;
         line-height: 1.4 !important;
     }
 
     div[data-testid="stAlert"] svg {
-        width: 36px !important;
-        height: 36px !important;
+        width: 42px !important;
+        height: 42px !important;
         fill: #ffffff !important;
     }
 
@@ -232,7 +219,7 @@ custom_css = """
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("✅")),
     div[data-testid="stAlert"][aria-label*="success"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
-        background-color: #059669 !important; /* Hijau solid yang jelas */
+        background-color: #059669 !important; 
         border: 2px solid #10b981 !important;
     }
 
@@ -241,14 +228,14 @@ custom_css = """
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("❌")),
     div[data-testid="stAlert"][aria-label*="error"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
-        background-color: #dc2626 !important; /* Merah solid yang jelas */
+        background-color: #dc2626 !important; 
         border: 2px solid #f87171 !important;
     }
 
-    /* 3. NOTIFIKASI PERINGATAN (Cokelat/Kuning Solid) */
+    /* 3. NOTIFIKASI PERINGATAN (Oranye/Kuning Solid) */
     div[data-testid="stAlert"][aria-label*="warning"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
-        background-color: #d97706 !important; /* Oranye/Kuning solid */
+        background-color: #d97706 !important; 
         border: 2px solid #fbbf24 !important;
     }
 </style>
@@ -258,9 +245,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #334155; font-weight: 700; font-size: 1.1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 10px;'>Untuk penulisan NIK menggunakan 8 digit angka</p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.2rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.3rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 30px;'>Contoh 00003950</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
@@ -268,7 +254,7 @@ ENTRY_NAMA = "entry.827733304"
 
 with st.form(key="form_absen_test", clear_on_submit=True):
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):", max_chars=8)
-    submit_button = st.form_submit_button(label="ABSEN", use_container_width=True)
+    submit_button = st.form_submit_button(label="ABSEN") # Tombol disembunyikan lewat CSS
 
 components.html(
     """
