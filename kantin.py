@@ -246,7 +246,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.3rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 30px;'>Contoh 00003950</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.3rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 30px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
