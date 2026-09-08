@@ -204,7 +204,7 @@ st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; fo
 st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 20px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
 # 🔍 TEKS PETUNJUK DIBUAT JAUH LEBIH BESAR & JELAS DI ATAS KOTAK INPUT
-st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Scan / Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
