@@ -1,6 +1,7 @@
 from datetime import datetime
 import base64
 import os
+import time
 import pandas as pd
 import requests
 import streamlit as st
@@ -22,34 +23,35 @@ RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bs
 # ⚠️ MASUKKAN ID GOOGLE SHEET REKAP FORM ANDA DI SINI ⚠️
 SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
 
-# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI ---
+# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI (REAL-TIME NO-CACHE) ---
 def is_already_absent_today(nik):
     """Mengecek apakah NIK sudah pernah absen pada tanggal hari ini dari Google Sheet"""
     if SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
-        return False # Jika ID belum diset, lewati validasi
+        return False
         
-    csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/gviz/tq?tqx=out:csv"
+    # Parameter &nocache= digunakan untuk memaksa fetching data paling segar
+    csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
+    
     try:
-        # Buka data CSV dari publik Google Sheet
         df_responses = pd.read_csv(csv_url)
         
         if df_responses.empty:
             return False
             
-        # Ambil kolom Timestamp/Waktu dan NIK (Kolom 0 & Kolom 1)
+        # Format tanggal & penyesuaian string NIK
         df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
-        
         today_date = datetime.now().date()
         
-        # Filter berdasarkan NIK dan Tanggal Hari Ini
+        nik_input = str(nik).strip()
+        nik_in_sheet = df_responses.iloc[:, 1].astype(str).str.strip().str.replace(".0", "", regex=False)
+        
         already_exists = df_responses[
-            (df_responses.iloc[:, 1].astype(str).str.strip() == str(nik).strip()) & 
+            (nik_in_sheet == nik_input) & 
             (df_responses.iloc[:, 0].dt.date == today_date)
         ]
         
         return not already_exists.empty
     except Exception as e:
-        # Jika terjadi kendala akses sheet, izinkan absen demi kelancaran sistem
         return False
 
 # --- FUNGSI BACA DATABASE KARYAWAN FROM CSV ---
@@ -139,7 +141,7 @@ custom_css = """
         background: rgba(255, 255, 255, 0.92) !important;
         backdrop-filter: blur(8px);
         border-radius: 20px;
-        padding: 30px;
+        padding: 35px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         border: 1px solid rgba(255,255,255,0.4);
     }
@@ -148,17 +150,31 @@ custom_css = """
     [data-testid="stForm"] label, 
     [data-testid="stForm"] label p {
         color: #0f172a !important;
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        font-size: 1.25rem !important;
     }
 
-    /* Styling Tombol Kirim */
+    /* 🔍 MEMBESARKAN KOTAK INPUT & TEKS ANGKA NIK */
+    div[data-testid="stTextInput"] input {
+        font-size: 2.2rem !important;      /* Angka yang diketik berukuran SANGAT BESAR */
+        font-weight: 900 !important;     /* Angka tebal/bold */
+        height: 70px !important;         /* Kotak input lebih tinggi */
+        text-align: center !important;   /* Posisi angka tepat di tengah */
+        letter-spacing: 4px !important;  /* Spasi antar angka lebih renggang */
+        color: #0f172a !important;       /* Warna teks sangat kontras/gelap */
+        border-radius: 12px !important;
+        border: 2px solid #3b82f6 !important;
+    }
+
+    /* MEMBESARKAN TOMBOL ABSEN */
     .stButton button {
-        border-radius: 10px;
+        border-radius: 12px;
         background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
         font-weight: bold;
+        height: 60px !important;          /* Tombol lebih tinggi */
+        font-size: 1.3rem !important;     /* Teks tombol diperbesar */
     }
 
     /* STYLING NOTIFIKASI UMUM (SUKSES, ERROR, WARNING) */
@@ -174,14 +190,14 @@ custom_css = """
 
     div[data-testid="stAlert"] * {
         color: #ffffff !important;
-        font-size: 1.35rem !important;
+        font-size: 1.5rem !important;    /* Teks notifikasi diperbesar agar terlihat dari jauh */
         font-weight: 800 !important;
         line-height: 1.5 !important;
     }
 
     div[data-testid="stAlert"] svg {
-        width: 32px !important;
-        height: 32px !important;
+        width: 36px !important;
+        height: 36px !important;
     }
 
     /* 1. STYLING NOTIFIKASI SUKSES (st.success) -> Hijau Tua Solid */
