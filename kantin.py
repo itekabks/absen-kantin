@@ -134,7 +134,7 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Card Container UI */
+    /* Container styling */
     .stMainBlockContainer {
         max-width: 650px !important;
     }
@@ -143,23 +143,23 @@ custom_css = """
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 2.2rem !important;          
+        font-size: 2.5rem !important;          
         font-weight: 800 !important;         
-        height: 70px !important;             
+        height: 75px !important;             
         text-align: center !important;       
-        letter-spacing: 4px !important;      
+        letter-spacing: 5px !important;      
         border-radius: 14px !important;
-        border: 2.5px solid #cbd5e1 !important; 
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+        border: 2.5px solid #2563eb !important; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
     }
 
     /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
     }
 
-    /* Sembunyikan Helper Text Bawaan */
+    /* Sembunyikan Helper Text Bawaan & Label standar */
     div[data-testid="stTextInput"] small,
     div[data-testid="stTextInput"] div[data-aria-live="polite"] {
         display: none !important;
@@ -175,8 +175,8 @@ custom_css = """
     div[data-testid="stAlert"] *,
     div[data-testid="stAlert"] p {
         color: #ffffff !important;
-        font-size: 1.3rem !important;
-        font-weight: 700 !important;
+        font-size: 1.4rem !important;
+        font-weight: 800 !important;
     }
 
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
@@ -201,21 +201,36 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
 st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 20px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
+
+# 🔍 TEKS PETUNJUK DIBUAT JAUH LEBIH BESAR & JELAS DI ATAS KOTAK INPUT
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Scan / Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
-# Input teks langsung (Tanpa st.form / Tanpa Tombol Submit)
-nik_input = st.text_input(
-    label="Silakan Scan / Ketik NIK Anda (Lalu tekan Enter):",
+# Callback untuk memproses NIK dan langsung mengosongkan kotak input
+def handle_nik_submit():
+    input_val = st.session_state.nik_input_key.strip()
+    if input_val:
+        st.session_state.last_submitted_nik = input_val
+    st.session_state.nik_input_key = ""  # Auto-clear kotak input
+
+if "last_submitted_nik" not in st.session_state:
+    st.session_state.last_submitted_nik = ""
+
+# Input Box Tanpa Label (Menggunakan Teks HTML Custom di atas)
+st.text_input(
+    label="nik_label_hidden",
+    label_visibility="collapsed",
     max_chars=8, 
     placeholder="00000000",
-    key="nik_input_key"
+    key="nik_input_key",
+    on_change=handle_nik_submit
 )
 
-# JavaScript agar kursor otomatis mengunci ke dalam kotak input saat dibuka
+# Auto Focus Javascript
 components.html(
     """
     <script>
@@ -232,12 +247,12 @@ components.html(
     width=0
 )
 
-# Proses otomatis dijalankan saat pengguna menekan Enter
-if nik_input:
-    nik_clean = nik_input.strip()
-    if not nik_clean:
-        st.warning("⚠️ NIK tidak boleh kosong!")
-    elif not nik_clean.isdigit():
+# Eksekusi Proses Absen dari NIK Terakhir yang Ditembak
+if st.session_state.last_submitted_nik:
+    nik_clean = st.session_state.last_submitted_nik
+    st.session_state.last_submitted_nik = ""  # Reset state setelah diproses
+    
+    if not nik_clean.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka!")
     elif len(nik_clean) != 8:
         st.error(f"⚠️ NIK harus 8 digit! (Anda memasukkan {len(nik_clean)} digit)")
