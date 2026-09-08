@@ -138,12 +138,12 @@ custom_css = """
 <style>
     /* Styling Form Glassmorphism */
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.92) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(8px);
         border-radius: 20px;
         padding: 35px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border: 1px solid rgba(255,255,255,0.4);
+        border: 1px solid rgba(255,255,255,0.6);
     }
 
     /* FIX TEKS LABEL INPUT DARI SEMUA FORM */
@@ -154,83 +154,102 @@ custom_css = """
         font-size: 1.25rem !important;
     }
 
-    /* 🔍 MEMBESARKAN KOTAK INPUT & TEKS ANGKA NIK */
+    /* 🔍 DENGAN BACKGROUND PUTIH SERTA TEKS GELAP BIAR SANGAT JELAS */
     div[data-testid="stTextInput"] input {
-        font-size: 2.2rem !important;      /* Angka yang diketik berukuran SANGAT BESAR */
-        font-weight: 900 !important;     /* Angka tebal/bold */
-        height: 70px !important;         /* Kotak input lebih tinggi */
-        text-align: center !important;   /* Posisi angka tepat di tengah */
-        letter-spacing: 4px !important;  /* Spasi antar angka lebih renggang */
-        color: #0f172a !important;       /* Warna teks sangat kontras/gelap */
+        background-color: #ffffff !important; /* Memaksa latar belakang putih padat */
+        color: #0f172a !important;            /* Warna teks hitam gelap */
+        font-size: 2.2rem !important;          /* Ukuran angka NIK sangat besar */
+        font-weight: 900 !important;         /* Angka sangat tebal */
+        height: 70px !important;             /* Kotak lebih tinggi */
+        text-align: center !important;       /* Angka rata tengah */
+        letter-spacing: 4px !important;      /* Jarak antar angka lebih renggang */
         border-radius: 12px !important;
-        border: 2px solid #3b82f6 !important;
+        border: 2.5px solid #2563eb !important; /* Bingkai biru jelas */
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
     }
 
-    /* MEMBESARKAN TOMBOL ABSEN */
+    /* KOTAK INPUT SAAT DIKLIK/FOKUS */
+    div[data-testid="stTextInput"] input:focus {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3) !important;
+    }
+
+    /* FIX WARNA HINT HELPER TEXT (Press Enter to submit form) */
+    div[data-testid="stTextInput"] small,
+    div[data-testid="stTextInput"] div[data-aria-live="polite"] {
+        color: #475569 !important;
+        font-weight: 600 !important;
+    }
+
+    /* MEMBESARKAN & MEMPERJELAS TOMBOL ABSEN */
     .stButton button {
-        border-radius: 12px;
-        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        font-weight: bold;
-        height: 60px !important;          /* Tombol lebih tinggi */
-        font-size: 1.3rem !important;     /* Teks tombol diperbesar */
+        border-radius: 12px !important;
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: 800 !important;
+        height: 60px !important;
+        font-size: 1.4rem !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
     }
 
-    /* STYLING NOTIFIKASI UMUM (SUKSES, ERROR, WARNING) */
+    .stButton button:hover {
+        background: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%) !important;
+        color: #ffffff !important;
+    }
+
+    /* 🟢🔴 FIX NOTIFIKASI SUKSES / ERROR AGAR SOLID DAN JELAS BERWARNA */
     div[data-testid="stAlert"] {
         border-radius: 16px !important;
         padding: 20px !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+        opacity: 1 !important;
     }
 
     div[data-testid="stAlert"] [data-baseweb="notification"] {
         background-color: transparent !important;
     }
 
-    div[data-testid="stAlert"] * {
+    /* TEKS NOTIFIKASI KONTRASTING SANGAT BOLD */
+    div[data-testid="stAlert"] *,
+    div[data-testid="stAlert"] p,
+    div[data-testid="stAlert"] span {
         color: #ffffff !important;
-        font-size: 1.5rem !important;    /* Teks notifikasi diperbesar agar terlihat dari jauh */
+        font-size: 1.4rem !important;
         font-weight: 800 !important;
-        line-height: 1.5 !important;
+        line-height: 1.4 !important;
     }
 
     div[data-testid="stAlert"] svg {
         width: 36px !important;
         height: 36px !important;
+        fill: #ffffff !important;
     }
 
-    /* 1. STYLING NOTIFIKASI SUKSES (st.success) -> Hijau Tua Solid */
+    /* 1. NOTIFIKASI SUKSES (Hijau Solid) */
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("✅")),
     div[data-testid="stAlert"][aria-label*="success"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
-        background-color: #064e3b !important;
+        background-color: #059669 !important; /* Hijau solid yang jelas */
         border: 2px solid #10b981 !important;
     }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) svg {
-        fill: #34d399 !important;
-    }
 
-    /* 2. STYLING NOTIFIKASI GAGAL (st.error) -> Merah Tua Solid */
+    /* 2. NOTIFIKASI GAGAL (Merah Solid) */
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("⚠️")),
     div[data-testid="stAlert"]:has(div[class*="st-emotion-cache"]:contains("❌")),
     div[data-testid="stAlert"][aria-label*="error"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
-        background-color: #7f1d1d !important;
+        background-color: #dc2626 !important; /* Merah solid yang jelas */
         border: 2px solid #f87171 !important;
     }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) svg {
-        fill: #fca5a5 !important;
-    }
 
-    /* 3. STYLING NOTIFIKASI PERINGATAN (st.warning) -> Cokelat/Kuning Tua Solid */
+    /* 3. NOTIFIKASI PERINGATAN (Cokelat/Kuning Solid) */
     div[data-testid="stAlert"][aria-label*="warning"],
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
-        background-color: #78350f !important;
+        background-color: #d97706 !important; /* Oranye/Kuning solid */
         border: 2px solid #fbbf24 !important;
-    }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) svg {
-        fill: #fde047 !important;
     }
 </style>
 """
@@ -240,8 +259,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
 st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 8 digit angka</p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-weight: 800; font-size: 2rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #334155; font-weight: 700; font-size: 1.1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 10px;'>Untuk penulisan NIK menggunakan 8 digit angka</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.2rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
 ENTRY_NIK = "entry.924986826"
