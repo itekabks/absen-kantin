@@ -233,7 +233,7 @@ ENTRY_NAMA = "entry.827733304"
 
 with st.form(key="form_absen_test", clear_on_submit=True):
     nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):", max_chars=8)
-    submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
+    submit_button = st.form_submit_button(label="ABSEN", use_container_width=True)
 
 components.html(
     """
