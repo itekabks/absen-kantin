@@ -83,7 +83,7 @@ def is_already_absent_today(nik):
 
 db_karyawan = load_data_karyawan()
 
-# --- BACKGROUND & CUSTOM CSS (SUPER JUMBO VERSION) ---
+# --- BACKGROUND & CUSTOM CSS (SUPER JUMBO FIXED) ---
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
@@ -108,30 +108,38 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container styling diperlebar maksimal untuk tampilan TV/Monitor */
+    /* Container styling diperlebar maksimal untuk layar TV/Monitor */
     .stMainBlockContainer {
         max-width: 1100px !important;
-        padding-top: 2rem !important;
+        padding-top: 1.5rem !important;
     }
 
-    /* Input Field Styling - EKSTRA JUMBO */
+    /* Target Wrapper Element Streamlit Input */
+    div[data-testid="stTextInput"] > div {
+        height: 150px !important;
+        background-color: transparent !important;
+    }
+
+    /* Input Field Styling - SUPER JUMBO TANPA TERPOTONG */
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 5.5rem !important;         /* Angka NIK Super Besar */
+        font-size: 5rem !important;           /* Angka NIK Super Besar & Jelas */
         font-weight: 900 !important;          
-        height: 120px !important;             /* Kotak Input Ekstra Tinggi */
+        height: 150px !important;             /* Tinggi kotak diperbesar signifikan */
+        line-height: 150px !important;        /* Menjaga angka tepat di tengah vertikal */
         text-align: center !important;        
-        letter-spacing: 12px !important;      /* Jarak antar angka diperlebar */
-        border-radius: 20px !important;
-        border: 5px solid #2563eb !important; 
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+        letter-spacing: 12px !important;      /* Jarak antar angka */
+        border-radius: 24px !important;
+        border: 6px solid #2563eb !important; 
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25) !important;
+        padding: 0px 20px !important;
     }
 
     /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
         border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan & Label standar */
