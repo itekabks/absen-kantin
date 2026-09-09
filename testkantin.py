@@ -13,24 +13,23 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
+# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS (SERVER TEST) ---
 ADMIN_PASSWORD = "Eka1234!"
 
 # Link Rekap Responses Google Form Server Test
 RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
 
-# 1. ID & Link Google Sheet DATABASE KARYAWAN
+# 1. ID & Link Google Sheet DATABASE KARYAWAN TEST
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
 KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
 
-# 2. ID Google Sheet REKAP HASIL ABSENSI (Google Form Test)
+# 2. ID Google Sheet REKAP HASIL ABSENSI TEST
 RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
 
 
-# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET ---
+# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET TEST ---
 @st.cache_data(ttl=10)
 def load_data_karyawan():
-    """Membaca daftar karyawan langsung dari Google Spreadsheet"""
     if not KARYAWAN_SPREADSHEET_ID:
         return {}
         
@@ -53,9 +52,8 @@ def load_data_karyawan():
         return {}
 
 
-# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI (REAL-TIME NO-CACHE) ---
+# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI ---
 def is_already_absent_today(nik):
-    """Mengecek apakah NIK sudah pernah absen pada tanggal hari ini dari Google Sheet Hasil Form"""
     if RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
         return False
         
@@ -85,7 +83,7 @@ def is_already_absent_today(nik):
 
 db_karyawan = load_data_karyawan()
 
-# --- BACKGROUND & CUSTOM CSS ---
+# --- BACKGROUND & CUSTOM CSS (BESAR & JELAS) ---
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
@@ -115,7 +113,7 @@ custom_css = """
         max-width: 650px !important;
     }
 
-    /* Input Field Styling */
+    /* Input Field Styling - SERTAKAN UKURAN DENGAN ANGKA BESAR */
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
@@ -141,7 +139,7 @@ custom_css = """
         display: none !important;
     }
 
-    /* 1. HEADER EXPANDER (Judul Atas) - Latar Terang & Teks Gelap Pekat */
+    /* 1. HEADER EXPANDER ADMIN - Terang & Teks Gelap Pekat */
     div[data-testid="stExpander"] summary {
         background-color: rgba(255, 255, 255, 0.9) !important;
         border-radius: 10px !important;
@@ -152,14 +150,14 @@ custom_css = """
         font-weight: 800 !important;
     }
 
-    /* 2. TEKS PARAGRAF & KETERANGAN ADMIN */
+    /* 2. TEKS PANEL ADMIN */
     div[data-testid="stExpander"] p, 
     div[data-testid="stExpander"] span:not(button span) {
         color: #0f172a !important;
         font-weight: 700 !important;
     }
 
-    /* 3. TOMBOL LOGOUT (st.button) - Merah Terang dengan Teks Putih */
+    /* 3. TOMBOL LOGOUT (Merah Terang Teks Putih) */
     div[data-testid="stExpander"] button[kind="secondary"] {
         background-color: #dc2626 !important;
         border: none !important;
@@ -170,7 +168,7 @@ custom_css = """
         font-weight: 800 !important;
     }
 
-    /* 4. TOMBOL EDIT DATA (st.link_button) - Biru Utama dengan Teks Putih */
+    /* 4. TOMBOL EDIT DATA (Biru Teks Putih) */
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
         background-color: #2563eb !important;
         border: none !important;
@@ -181,25 +179,13 @@ custom_css = """
         font-weight: 800 !important;
     }
 
-    /* 5. TAB HEADER & MARKS */
+    /* 5. TAB HEADER */
     button[data-baseweb="tab"] * {
         color: #0f172a !important;
         font-weight: 800 !important;
     }
 
-    /* 6. STYLING KOTAK INFO (st.info) */
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) {
-        background-color: #e0f2fe !important;
-        border: 1px solid #0284c7 !important;
-    }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) * {
-        color: #0369a1 !important;
-        text-shadow: none !important;
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-    }
-
-    /* 7. NOTIFIKASI HASIL ABSEN (Success / Error / Warning) */
+    /* 6. NOTIFIKASI HASIL ABSEN (DIPERBESAR SANGAT JELAS) */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 14px !important;
         padding: 22px !important;
@@ -232,14 +218,12 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 20px;'>📌 Absensi Kantin Eka Bekasi (Server Test)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
-# Link Endpoint Google Form Server Test
+# Link Endpoint & Entry Google Form SERVER TEST
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
-
-# ID Entry dari Form Server Test
 ENTRY_NIK = "entry.952185819"
 ENTRY_NAMA = "entry.444514235"
 
@@ -278,15 +262,15 @@ components.html(
     width=0
 )
 
-# Eksekusi Proses Absen
+# Eksekusi Proses Absen dengan Validasi 8 Digit
 if st.session_state.last_submitted_nik:
     input_nik = st.session_state.last_submitted_nik
     st.session_state.last_submitted_nik = ""
     
-    # 1. Cek apakah hanya angka
+    # 1. Validasi hanya angka
     if not input_nik.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka!")
-    # 2. Cek apakah panjang NIK tepat 8 digit
+    # 2. Validasi wajib tepat 8 digit
     elif len(input_nik) != 8:
         st.error(f"❌ NIK harus berjumlah tepat 8 digit angka! (Anda mengetik {len(input_nik)} digit)")
     else:
@@ -317,7 +301,7 @@ footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; 
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# PANEL INFORMASI & DAFTAR KARYAWAN (PROTECTED BY PASSWORD)
+# PANEL INFORMASI & DAFTAR KARYAWAN (KHUSUS ADMIN TEST)
 # ==============================================================================
 st.divider()
 
@@ -328,7 +312,6 @@ if "login_error" not in st.session_state:
     st.session_state.login_error = False
 
 def handle_login():
-    """Fungsi eksekusi login saat menekan Enter"""
     pwd = st.session_state.pass_input_key
     if pwd == ADMIN_PASSWORD:
         st.session_state.admin_logged_in = True
