@@ -16,14 +16,11 @@ st.set_page_config(
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS (SERVER TEST) ---
 ADMIN_PASSWORD = "Eka1234!"
 
-# Link Rekap Responses Google Form Server Test
 RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
 
-# 1. ID & Link Google Sheet DATABASE KARYAWAN TEST
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
 KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
 
-# 2. ID Google Sheet REKAP HASIL ABSENSI TEST
 RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
 
 
@@ -37,7 +34,6 @@ def load_data_karyawan():
     
     try:
         df = pd.read_csv(csv_url, dtype=str)
-        
         if df.empty:
             return {}
             
@@ -61,7 +57,6 @@ def is_already_absent_today(nik):
     
     try:
         df_responses = pd.read_csv(csv_url)
-        
         if df_responses.empty:
             return False
             
@@ -108,13 +103,13 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container utama diperlebar untuk monitor */
+    /* Container utama diperlebar */
     .stMainBlockContainer {
         max-width: 1100px !important;
         padding-top: 1.5rem !important;
     }
 
-    /* Paksa div pembungkus input NIK memiliki tinggi 140px */
+    /* Pembungkus input NIK */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]),
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div,
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div > div {
@@ -123,7 +118,7 @@ custom_css = """
         max-height: 140px !important;
     }
 
-    /* Input Field NIK (KHUSUS NIK ABSENSI - SUPER JUMBO & UTUH) */
+    /* Input Field NIK (SUPER JUMBO) */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
@@ -138,12 +133,6 @@ custom_css = """
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
         padding: 0 !important;               
         box-sizing: border-box !important;
-    }
-
-    /* Efek Focus Input NIK */
-    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input:focus {
-        border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.4) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan NIK */
@@ -191,11 +180,23 @@ custom_css = """
         font-size: 1.3rem !important;
     }
 
-    /* TEKS PANEL ADMIN */
+    /* TEKS PANEL ADMIN (KHUSUS ELEMEN PARAGRAF DAN SPAN SAJA) */
     div[data-testid="stExpander"] p, 
-    div[data-testid="stExpander"] span:not(button span) {
+    div[data-testid="stExpander"] div[data-testid="stMarkdownContainer"] span {
         color: #0f172a !important;
         font-weight: 700 !important;
+    }
+
+    /* TOMBOL LINK BUTTON (TERANG & JELAS) */
+    div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
+        background-color: #2563eb !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 12px 20px !important;
+    }
+    div[data-testid="stExpander"] a[data-testid="stLinkButton"] * {
+        color: #ffffff !important;
+        font-weight: 800 !important;
         font-size: 1.1rem !important;
     }
 
@@ -206,17 +207,6 @@ custom_css = """
         border-radius: 10px !important;
     }
     div[data-testid="stExpander"] button[kind="secondary"] * {
-        color: #ffffff !important;
-        font-weight: 800 !important;
-    }
-
-    /* TOMBOL EDIT DATA */
-    div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
-        background-color: #2563eb !important;
-        border: none !important;
-        border-radius: 10px !important;
-    }
-    div[data-testid="stExpander"] a[data-testid="stLinkButton"] * {
         color: #ffffff !important;
         font-weight: 800 !important;
     }
@@ -267,7 +257,6 @@ st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; fon
 
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
-# Link Endpoint & Entry Google Form SERVER TEST
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
 ENTRY_NIK = "entry.952185819"
 ENTRY_NAMA = "entry.444514235"
@@ -290,7 +279,7 @@ st.text_input(
     on_change=handle_nik_submit
 )
 
-# Auto Focus Javascript untuk NIK Input
+# Auto Focus untuk Input NIK
 components.html(
     """
     <script>
@@ -307,15 +296,13 @@ components.html(
     width=0
 )
 
-# Eksekusi Proses Absen dengan Validasi 8 Digit
+# Eksekusi Proses Absen
 if st.session_state.last_submitted_nik:
     input_nik = st.session_state.last_submitted_nik
     st.session_state.last_submitted_nik = ""
     
-    # 1. Validasi hanya angka
     if not input_nik.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka!")
-    # 2. Validasi wajib tepat 8 digit
     elif len(input_nik) != 8:
         st.error(f"❌ NIK harus berjumlah tepat 8 digit angka! (Anda mengetik {len(input_nik)} digit)")
     else:
@@ -346,7 +333,7 @@ footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; 
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# PANEL INFORMASI & DAFTAR KARYAWAN (KHUSUS ADMIN TEST)
+# PANEL INFORMASI & DAFTAR KARYAWAN (ADMIN)
 # ==============================================================================
 st.divider()
 
@@ -376,17 +363,30 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
             on_change=handle_login
         )
         
-        # Script Auto-Focus ke Password saat Expander diklik
+        # Script JS: Menambahkan Event Listener Klik pada Panel Expander & Auto Focus
         components.html(
             """
             <script>
-                const focusPass = () => {
-                    const passInput = window.parent.document.querySelector('input[type="password"]');
+                const parentDoc = window.parent.document;
+                
+                // Fungsi Fokus langsung ke password
+                const tryFocusPassword = () => {
+                    const passInput = parentDoc.querySelector('input[type="password"]');
                     if (passInput) {
                         passInput.focus();
                     }
                 };
-                setTimeout(focusPass, 150);
+
+                // Panggil langsung saat expander terbuka
+                setTimeout(tryFocusPassword, 150);
+
+                // Tambahkan event listener saat klik header expander
+                const expanderHeaders = parentDoc.querySelectorAll('div[data-testid="stExpander"] summary');
+                expanderHeaders.forEach(header => {
+                    header.addEventListener('click', () => {
+                        setTimeout(tryFocusPassword, 250);
+                    });
+                });
             </script>
             """,
             height=0,
