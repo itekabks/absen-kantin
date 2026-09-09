@@ -83,7 +83,7 @@ def is_already_absent_today(nik):
 
 db_karyawan = load_data_karyawan()
 
-# --- BACKGROUND & CUSTOM CSS (SUPER JUMBO FIXED) ---
+# --- BACKGROUND & CUSTOM CSS ---
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
@@ -108,48 +108,74 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container utama diperlebar */
+    /* Container utama diperlebar untuk monitor */
     .stMainBlockContainer {
         max-width: 1100px !important;
         padding-top: 1.5rem !important;
     }
 
-    /* Paksa seluruh div pembungkus input memiliki tinggi 140px */
-    div[data-testid="stTextInput"],
-    div[data-testid="stTextInput"] > div,
-    div[data-testid="stTextInput"] > div > div {
+    /* Paksa div pembungkus input NIK memiliki tinggi 140px */
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]),
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div,
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div > div {
         height: 140px !important;
         min-height: 140px !important;
         max-height: 140px !important;
     }
 
-    /* Elemen Input - Pas secara vertikal tanpa terpotong */
-    div[data-testid="stTextInput"] input {
+    /* Input Field NIK (KHUSUS NIK ABSENSI - SUPER JUMBO & UTUH) */
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 4.5rem !important;        /* Ukuran font optimal agar muat sempurna */
+        font-size: 4.5rem !important;        
         font-weight: 900 !important;          
-        height: 140px !important;            /* Tinggi input persis sama dengan wrapper */
-        line-height: 140px !important;       /* Mengatur posisi vertikal di tengah */
+        height: 140px !important;            
+        line-height: 140px !important;       
         text-align: center !important;        
-        letter-spacing: 10px !important;     /* Jarak antar angka */
+        letter-spacing: 10px !important;     
         border-radius: 20px !important;
         border: 5px solid #2563eb !important; 
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
-        padding: 0 !important;               /* Hilangkan padding default agar angka tidak terdorong */
+        padding: 0 !important;               
         box-sizing: border-box !important;
     }
 
-    /* Efek Focus Input */
-    div[data-testid="stTextInput"] input:focus {
+    /* Efek Focus Input NIK */
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input:focus {
         border-color: #1d4ed8 !important;
         box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.4) !important;
     }
 
-    /* Sembunyikan Helper Text Bawaan & Label standar */
-    div[data-testid="stTextInput"] small,
-    div[data-testid="stTextInput"] div[data-aria-live="polite"] {
+    /* Sembunyikan Helper Text Bawaan NIK */
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) small,
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) div[data-aria-live="polite"] {
         display: none !important;
+    }
+
+    /* ================================================================== */
+    /* INPUT PASSWORD ADMIN (STANDAR / BIASA)                             */
+    /* ================================================================== */
+    div[data-testid="stExpander"] div[data-testid="stTextInput"],
+    div[data-testid="stExpander"] div[data-testid="stTextInput"] > div,
+    div[data-testid="stExpander"] div[data-testid="stTextInput"] > div > div {
+        height: auto !important;
+        min-height: initial !important;
+        max-height: initial !important;
+    }
+
+    div[data-testid="stExpander"] div[data-testid="stTextInput"] input {
+        height: 45px !important;
+        line-height: normal !important;
+        font-size: 1rem !important;
+        font-weight: normal !important;
+        letter-spacing: normal !important;
+        text-align: left !important;
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 0 12px !important;
+        box-shadow: none !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
     }
 
     /* HEADER EXPANDER ADMIN */
@@ -264,7 +290,7 @@ st.text_input(
     on_change=handle_nik_submit
 )
 
-# Auto Focus Javascript
+# Auto Focus Javascript untuk NIK Input
 components.html(
     """
     <script>
@@ -349,6 +375,24 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
             key="pass_input_key",
             on_change=handle_login
         )
+        
+        # Script Auto-Focus ke Password saat Expander diklik
+        components.html(
+            """
+            <script>
+                const focusPass = () => {
+                    const passInput = window.parent.document.querySelector('input[type="password"]');
+                    if (passInput) {
+                        passInput.focus();
+                    }
+                };
+                setTimeout(focusPass, 150);
+            </script>
+            """,
+            height=0,
+            width=0
+        )
+        
         if st.session_state.login_error:
             st.error("❌ Password salah!")
     else:
