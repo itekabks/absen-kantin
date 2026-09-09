@@ -265,9 +265,9 @@ st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; fon
 
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.3rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
-ENTRY_NIK = "entry.952185819"
-ENTRY_NAMA = "entry.444514235"
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
+ENTRY_NIK = "entry.924986826"
+ENTRY_NAMA = "entry.827733304"
 
 def handle_nik_submit():
     input_val = st.session_state.nik_input_key.strip()
