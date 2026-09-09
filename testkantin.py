@@ -14,8 +14,8 @@ st.set_page_config(
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
-# Password untuk membuka Panel Informasi Database
-ADMIN_PASSWORD = "Eka1234!"  # <--- Ganti password sesuai kebutuhan Anda
+# Password Admin Baru
+ADMIN_PASSWORD = "Eka1234!"
 
 # Link Rekap Responses Google Form Server Test
 RESPONSES_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/viewanalytics"
@@ -266,17 +266,31 @@ st.divider()
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
+if "login_error" not in st.session_state:
+    st.session_state.login_error = False
+
+def handle_login():
+    """Fungsi eksekusi login saat menekan Enter"""
+    pwd = st.session_state.pass_input_key
+    if pwd == ADMIN_PASSWORD:
+        st.session_state.admin_logged_in = True
+        st.session_state.login_error = False
+    else:
+        st.session_state.admin_logged_in = False
+        st.session_state.login_error = True
+    st.session_state.pass_input_key = ""
+
 with st.expander("🔒 Informasi Database & Rekap Absensi (Khusus Admin)"):
     if not st.session_state.admin_logged_in:
         st.subheader("🔑 Masukkan Password Admin")
-        input_password = st.text_input("Password", type="password", key="pass_input")
-        if st.button("Login"):
-            if input_password == ADMIN_PASSWORD:
-                st.session_state.admin_logged_in = True
-                st.success("Login berhasil!")
-                st.rerun()
-            else:
-                st.error("❌ Password salah!")
+        st.text_input(
+            "Masukkan Password lalu tekan Enter", 
+            type="password", 
+            key="pass_input_key",
+            on_change=handle_login
+        )
+        if st.session_state.login_error:
+            st.error("❌ Password salah!")
     else:
         col1, col2 = st.columns([3, 1])
         with col1:
@@ -284,6 +298,7 @@ with st.expander("🔒 Informasi Database & Rekap Absensi (Khusus Admin)"):
         with col2:
             if st.button("🔒 Logout"):
                 st.session_state.admin_logged_in = False
+                st.session_state.login_error = False
                 st.rerun()
 
         st.link_button("✏️ Edit / Update Data Karyawan (Google Spreadsheet)", KARYAWAN_SPREADSHEET_URL, use_container_width=True)
