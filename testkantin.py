@@ -14,10 +14,15 @@ st.set_page_config(
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
+# Password untuk membuka Panel Informasi Database
+ADMIN_PASSWORD = "Eka1234!"  # <--- Ganti password sesuai kebutuhan Anda
+
+# Link Rekap Responses Google Form Server Test
 RESPONSES_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/viewanalytics"
 
-# 1. ID Google Sheet DATABASE KARYAWAN
+# 1. ID & Link Google Sheet DATABASE KARYAWAN
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
+KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
 
 # 2. ID Google Sheet REKAP HASIL ABSENSI (Google Form Test)
 RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
@@ -181,7 +186,7 @@ st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; fon
 # Link Endpoint Google Form Server Test
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
 
-# ID Entry dari Form Server Test (Sesuaikan jika berbeda)
+# ID Entry dari Form Server Test
 ENTRY_NIK = "entry.952185819"
 ENTRY_NAMA = "entry.444514235"
 
@@ -254,29 +259,52 @@ footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; 
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# PANEL INFORMASI & DAFTAR KARYAWAN
+# PANEL INFORMASI & DAFTAR KARYAWAN (PROTECTED BY PASSWORD)
 # ==============================================================================
 st.divider()
 
-with st.expander("📋 Informasi Database & Rekap Absensi"):
-    st.write(f"Total Karyawan Terdaftar di Google Sheet: **{len(db_karyawan)} Karyawan**")
-    
-    tab_daftar, tab_respon = st.tabs([
-        "📋 Daftar Karyawan", 
-        "📊 Data Absensi (Google Form Test)"
-    ])
+if "admin_logged_in" not in st.session_state:
+    st.session_state.admin_logged_in = False
 
-    with tab_daftar:
-        if db_karyawan:
-            df_karyawan = pd.DataFrame(list(db_karyawan.items()), columns=["NIK", "Nama Karyawan"])
-            st.dataframe(df_karyawan, use_container_width=True)
-            if st.button("🔄 Refresh Data Karyawan"):
-                st.cache_data.clear()
+with st.expander("🔒 Informasi Database & Rekap Absensi (Khusus Admin)"):
+    if not st.session_state.admin_logged_in:
+        st.subheader("🔑 Masukkan Password Admin")
+        input_password = st.text_input("Password", type="password", key="pass_input")
+        if st.button("Login"):
+            if input_password == ADMIN_PASSWORD:
+                st.session_state.admin_logged_in = True
+                st.success("Login berhasil!")
                 st.rerun()
-        else:
-            st.info("Belum ada data karyawan atau Google Sheet belum di-set Publik.")
+            else:
+                st.error("❌ Password salah!")
+    else:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"Total Karyawan Terdaftar di Google Sheet: **{len(db_karyawan)} Karyawan**")
+        with col2:
+            if st.button("🔒 Logout"):
+                st.session_state.admin_logged_in = False
+                st.rerun()
 
-    with tab_respon:
-        st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
-        st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin di Google Forms Test.")
-        st.link_button("🔗 Buka Google Form Responses", RESPONSES_URL, use_container_width=True)
+        st.link_button("✏️ Edit / Update Data Karyawan (Google Spreadsheet)", KARYAWAN_SPREADSHEET_URL, use_container_width=True)
+        st.write("")
+
+        tab_daftar, tab_respon = st.tabs([
+            "📋 Daftar Karyawan", 
+            "📊 Data Absensi (Google Form Test)"
+        ])
+
+        with tab_daftar:
+            if db_karyawan:
+                df_karyawan = pd.DataFrame(list(db_karyawan.items()), columns=["NIK", "Nama Karyawan"])
+                st.dataframe(df_karyawan, use_container_width=True)
+                if st.button("🔄 Refresh Data Karyawan"):
+                    st.cache_data.clear()
+                    st.rerun()
+            else:
+                st.info("Belum ada data karyawan atau Google Sheet belum di-set Publik.")
+
+        with tab_respon:
+            st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
+            st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin di Google Forms Test.")
+            st.link_button("🔗 Buka Google Form Responses", RESPONSES_URL, use_container_width=True)
