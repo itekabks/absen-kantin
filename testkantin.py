@@ -18,13 +18,15 @@ ADMIN_PASSWORD = "Eka1234!"
 
 RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
 
-KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
+# Spreadsheet Database Karyawan
+KARYAWAN_SPREADSHEET_ID = "1gexPaVq-3wzZaxljWC2df_Jqey_6mvzzVBuQeC8JcIM"
 KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
 
-RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
+# ID Spreadsheet Penampung Respon Google Form (Wajib diisi agar pengecekan 4 jam berfungsi)
+RESPONSES_SPREADSHEET_ID = "1gexPaVq-3wzZaxljWC2df_Jqey_6mvzzVBuQeC8JcIM"
 
 
-# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET TEST ---
+# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET ---
 @st.cache_data(ttl=10)
 def load_data_karyawan():
     if not KARYAWAN_SPREADSHEET_ID:
@@ -48,8 +50,8 @@ def load_data_karyawan():
         return {}
 
 
-# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI ---
-def is_already_absent_today(nik):
+# --- FUNGSI CEK ABSEN DUPLIKAT (JEDA MINIMAL 4 JAM) ---
+def is_already_absent_today(nik, min_hours_gap=4):
     if RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
         return False
         
@@ -59,19 +61,32 @@ def is_already_absent_today(nik):
         df_responses = pd.read_csv(csv_url)
         if df_responses.empty:
             return False
-            
+
+        # Konversi Kolom Timestamp ke format Datetime
         df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
-        today_date = datetime.now().date()
         
         nik_input = str(nik).strip()
         nik_in_sheet = df_responses.iloc[:, 1].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
-        
-        already_exists = df_responses[
-            (nik_in_sheet == nik_input) & 
-            (df_responses.iloc[:, 0].dt.date == today_date)
-        ]
-        
-        return not already_exists.empty
+
+        # Filter riwayat absen khusus NIK ini
+        user_history = df_responses[nik_in_sheet == nik_input]
+
+        if user_history.empty:
+            return False
+
+        # Ambil waktu absen TERAKHIR dari NIK tersebut
+        last_absen_time = user_history.iloc[:, 0].max()
+        now = datetime.now()
+
+        # Hitung selisih waktu (dalam jam) antara sekarang dengan absen terakhir
+        time_difference = (now - last_absen_time).total_seconds() / 3600.0
+
+        # Jika selisih waktu KURANG dari 4 jam, anggap DOUBLE ABSEN
+        if time_difference < min_hours_gap:
+            return True
+
+        return False
+
     except Exception:
         return False
 
@@ -103,7 +118,7 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container utama diperlebar agar muat elemen besar */
+    /* Container utama diperlebar */
     .stMainBlockContainer {
         max-width: 1250px !important;
         padding-top: 1rem !important;
@@ -118,7 +133,7 @@ custom_css = """
         max-height: 160px !important;
     }
 
-    /* Input Field NIK - DIPERBESAR EXTRA JUMBO (5.2rem / 160px) */
+    /* Input Field NIK - EXTRA JUMBO */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
@@ -147,9 +162,7 @@ custom_css = """
         display: none !important;
     }
 
-    /* ================================================================== */
-    /* NOTIFIKASI HASIL ABSEN (DIPERBESAR MAXIMAL)                        */
-    /* ================================================================== */
+    /* NOTIFIKASI HASIL ABSEN (DIPERBESAR MAXIMAL) */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 24px !important;
         padding: 35px 25px !important;
@@ -158,7 +171,7 @@ custom_css = """
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
         color: #ffffff !important;
-        font-size: 3.2rem !important;          /* Ukuran teks notifikasi lebih besar */
+        font-size: 3.2rem !important;          
         font-weight: 900 !important;
         line-height: 1.3 !important;
         text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7) !important;
@@ -176,9 +189,7 @@ custom_css = """
         border: none !important;
     }
 
-    /* ================================================================== */
-    /* INPUT PASSWORD ADMIN (STANDAR / BIASA)                             */
-    /* ================================================================== */
+    /* INPUT PASSWORD ADMIN (STANDAR / BIASA) */
     div[data-testid="stExpander"] div[data-testid="stTextInput"],
     div[data-testid="stExpander"] div[data-testid="stTextInput"] > div,
     div[data-testid="stExpander"] div[data-testid="stTextInput"] > div > div {
@@ -222,7 +233,7 @@ custom_css = """
         font-weight: 700 !important;
     }
 
-    /* TOMBOL LINK BUTTON */
+    /* TOMBOL LINK BUTTON (TERANG & JELAS) */
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
         background-color: #2563eb !important;
         border: none !important;
@@ -315,8 +326,8 @@ if st.session_state.last_submitted_nik:
         st.error(f"❌ NIK harus berjumlah tepat 8 digit angka! (Anda mengetik {len(input_nik)} digit)")
     else:
         nik_clean = input_nik
-        if is_already_absent_today(nik_clean):
-            st.error(f"❌ NIK {nik_clean} SUDAH ABSEN HARI INI!")
+        if is_already_absent_today(nik_clean, min_hours_gap=4):
+            st.error(f"❌ NIK {nik_clean} SUDAH ABSEN! (Harus tunggu jeda min. 4 jam untuk absen lagi)")
         else:
             nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
             payload = {
@@ -337,7 +348,7 @@ if st.session_state.last_submitted_nik:
 
 st.write("")
 
-# FOOTER CREATED BY DIPERBESAR (1.6rem)
+# FOOTER CREATED BY
 footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; font-size: 1.6rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-top: 20px;">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
 
@@ -372,7 +383,7 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
             on_change=handle_login
         )
         
-        # Script Auto Focus Password
+        # Script Auto Focus Password saat Expander Ditingkatkan
         components.html(
             """
             <script>
