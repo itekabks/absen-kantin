@@ -14,7 +14,6 @@ st.set_page_config(
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
-# Password Admin Baru
 ADMIN_PASSWORD = "Eka1234!"
 
 # Link Rekap Responses Google Form Server Test
@@ -142,15 +141,41 @@ custom_css = """
         display: none !important;
     }
 
-    /* Notifikasi Hasil Absen */
-    div[data-testid="stAlert"] {
+    /* FIX WARNA TEKS EXPANDER & PANEL ADMIN (AGAR HITAM PEKAT/JELAS) */
+    div[data-testid="stExpander"] * {
+        color: #0f172a !important;
+    }
+
+    /* Tab Header & Text Styling */
+    button[data-baseweb="tab"] *,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] h3 {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+
+    /* Styling Kotak Info (st.info) */
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) {
+        background-color: #e0f2fe !important;
+        border: 1px solid #0284c7 !important;
+    }
+
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) * {
+        color: #0369a1 !important;
+        text-shadow: none !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+    }
+
+    /* Notifikasi Hasil Absen (Success / Error / Warning) */
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 14px !important;
         padding: 22px !important;
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
     }
 
-    div[data-testid="stAlert"] *,
-    div[data-testid="stAlert"] p {
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
         color: #ffffff !important;
         font-size: 1.8rem !important;          
         font-weight: 800 !important;
