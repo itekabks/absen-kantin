@@ -108,38 +108,42 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container styling diperlebar maksimal untuk layar TV/Monitor */
+    /* Container utama diperlebar */
     .stMainBlockContainer {
         max-width: 1100px !important;
         padding-top: 1.5rem !important;
     }
 
-    /* Target Wrapper Element Streamlit Input */
-    div[data-testid="stTextInput"] > div {
-        height: 150px !important;
-        background-color: transparent !important;
+    /* Paksa seluruh div pembungkus input memiliki tinggi 140px */
+    div[data-testid="stTextInput"],
+    div[data-testid="stTextInput"] > div,
+    div[data-testid="stTextInput"] > div > div {
+        height: 140px !important;
+        min-height: 140px !important;
+        max-height: 140px !important;
     }
 
-    /* Input Field Styling - SUPER JUMBO TANPA TERPOTONG */
+    /* Elemen Input - Pas secara vertikal tanpa terpotong */
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 5rem !important;           /* Angka NIK Super Besar & Jelas */
+        font-size: 4.5rem !important;        /* Ukuran font optimal agar muat sempurna */
         font-weight: 900 !important;          
-        height: 150px !important;             /* Tinggi kotak diperbesar signifikan */
-        line-height: 150px !important;        /* Menjaga angka tepat di tengah vertikal */
+        height: 140px !important;            /* Tinggi input persis sama dengan wrapper */
+        line-height: 140px !important;       /* Mengatur posisi vertikal di tengah */
         text-align: center !important;        
-        letter-spacing: 12px !important;      /* Jarak antar angka */
-        border-radius: 24px !important;
-        border: 6px solid #2563eb !important; 
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25) !important;
-        padding: 0px 20px !important;
+        letter-spacing: 10px !important;     /* Jarak antar angka */
+        border-radius: 20px !important;
+        border: 5px solid #2563eb !important; 
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+        padding: 0 !important;               /* Hilangkan padding default agar angka tidak terdorong */
+        box-sizing: border-box !important;
     }
 
     /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
         border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.4) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan & Label standar */
@@ -198,7 +202,7 @@ custom_css = """
         font-size: 1.2rem !important;
     }
 
-    /* NOTIFIKASI HASIL ABSEN (SUPER JELAS) */
+    /* NOTIFIKASI HASIL ABSEN */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 20px !important;
         padding: 30px !important;
