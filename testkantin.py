@@ -1,5 +1,7 @@
+from datetime import datetime
 import base64
 import os
+import time
 import pandas as pd
 import requests
 import streamlit as st
@@ -11,67 +13,73 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CONFIGURATION VIA STREAMLIT SECRETS ---
-GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "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")
-REPO_NAME = st.secrets.get("REPO_NAME", "itekabks/absen-kantin")
-FILE_PATH = "karyawan.csv"
-ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", "admin123")
+# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
+RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit?pli=1#responses"
 
-# --- FUNGSI BACA DATABASE KARYAWAN FROM CSV (MODE TEST) ---
+# 1. ID Google Sheet DATABASE KARYAWAN (Menggunakan ID Link Anda)
+KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
+
+# 2. ID Google Sheet REKAP HASIL ABSENSI (Google Form)
+RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
+
+
+# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET ---
 @st.cache_data(ttl=10)
 def load_data_karyawan():
-    file_path = "karyawan.csv"
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path, dtype={'nik': str})
-        df['nik'] = df['nik'].astype(str).str.strip()
-        df['nama'] = df['nama'].astype(str).str.strip()
-        return dict(zip(df['nik'], df['nama']))
-    return {}
-
-def update_karyawan_to_github(dict_karyawan, commit_message):
-    """Fungsi update & commit file karyawan.csv ke GitHub (Auto Clean Token)"""
-    token = GITHUB_TOKEN.strip().replace('"', '').replace("'", "")
-    repo = REPO_NAME.strip().replace('"', '').replace("'", "")
+    """Membaca daftar karyawan langsung dari Google Spreadsheet"""
+    if not KARYAWAN_SPREADSHEET_ID:
+        return {}
+        
+    csv_url = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
     
-    if not token or not repo:
-        return False, "Token GitHub atau REPO_NAME belum dikonfigurasi di Secrets!"
+    try:
+        df = pd.read_csv(csv_url, dtype=str)
+        
+        if df.empty:
+            return {}
+            
+        # Mengambil kolom NIK dan Nama secara case-insensitive
+        col_nik = [c for c in df.columns if 'nik' in c.strip().lower()][0]
+        col_nama = [c for c in df.columns if 'nama' in c.strip().lower()][0]
+        
+        # Bersihkan data & otomatis format NIK menjadi 8 digit (misal: 7739 -> 00007739)
+        df['nik_clean'] = df[col_nik].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
+        df['nama_clean'] = df[col_nama].astype(str).str.strip()
+        
+        return dict(zip(df['nik_clean'], df['nama_clean']))
+    except Exception as e:
+        return {}
 
-    if token.startswith("github_pat_") or token.startswith("ghp_"):
-        auth_header = f"token {token}"
-    else:
-        auth_header = f"Bearer {token}"
 
-    headers = {
-        "Authorization": auth_header,
-        "Accept": "application/vnd.github.v3+json"
-    }
-    url = f"https://api.github.com/repos/{repo}/contents/{FILE_PATH}"
-
-    df_new = pd.DataFrame(list(dict_karyawan.items()), columns=['nik', 'nama'])
-    csv_content = df_new.to_csv(index=False)
-    content_encoded = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
-
-    res = requests.get(url, headers=headers)
+# --- FUNGSI CEK ABSEN DUPLIKAT HARI INI (REAL-TIME NO-CACHE) ---
+def is_already_absent_today(nik):
+    """Mengecek apakah NIK sudah pernah absen pada tanggal hari ini dari Google Sheet Hasil Form"""
+    if RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
+        return False
+        
+    csv_url = f"https://docs.google.com/spreadsheets/d/{RESPONSES_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
     
-    if res.status_code == 401:
-        return False, "Gagal mengakses GitHub: Bad credentials (Token tidak valid / expired)"
+    try:
+        df_responses = pd.read_csv(csv_url)
+        
+        if df_responses.empty:
+            return False
+            
+        df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
+        today_date = datetime.now().date()
+        
+        nik_input = str(nik).strip()
+        nik_in_sheet = df_responses.iloc[:, 1].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
+        
+        already_exists = df_responses[
+            (nik_in_sheet == nik_input) & 
+            (df_responses.iloc[:, 0].dt.date == today_date)
+        ]
+        
+        return not already_exists.empty
+    except Exception as e:
+        return False
 
-    payload = {
-        "message": commit_message,
-        "content": content_encoded
-    }
-
-    if res.status_code == 200:
-        payload["sha"] = res.json()['sha']
-    elif res.status_code != 404:
-        return False, f"Gagal mengakses GitHub: {res.json().get('message', '')}"
-
-    put_res = requests.put(url, headers=headers, json=payload)
-    if put_res.status_code in [200, 201]:
-        st.cache_data.clear()
-        return True, "Berhasil memperbarui data di GitHub!"
-    else:
-        return False, f"Gagal update GitHub ({put_res.status_code}): {put_res.json().get('message', '')}"
 
 db_karyawan = load_data_karyawan()
 
@@ -100,47 +108,66 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Styling Form Glassmorphism */
-    [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.92) !important;
-        backdrop-filter: blur(8px);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border: 1px solid rgba(255,255,255,0.4);
+    /* Container styling */
+    .stMainBlockContainer {
+        max-width: 650px !important;
     }
 
-    /* FIX TEKS LABEL INPUT DARI SEMUA FORM (NIK, NAMA, PASSWORD) */
-    [data-testid="stForm"] label, 
-    [data-testid="stForm"] label p {
-        color: #0f172a !important; /* Warna Teks Hitam Pekat */
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
-    }
-
-    /* Styling Tombol Kirim */
-    .stButton button {
-        border-radius: 10px;
-        background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        font-weight: bold;
-    }
-
-    /* FIX NOTIFIKASI SUKSES (st.success) */
-    div[data-testid="stAlertContainer"] [data-baseweb="notification"] {
-        background-color: #064e3b !important;
-        border: 2px solid #10b981 !important;
+    /* Input Field Styling */
+    div[data-testid="stTextInput"] input {
+        background-color: #ffffff !important; 
+        color: #0f172a !important;            
+        font-size: 3.2rem !important;          
+        font-weight: 900 !important;         
+        height: 85px !important;             
+        text-align: center !important;       
+        letter-spacing: 6px !important;      
         border-radius: 14px !important;
-        padding: 16px !important;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+        border: 3px solid #2563eb !important; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
     }
 
-    /* Teks Notifikasi Sukses */
-    div[data-testid="stAlertContainer"] [data-baseweb="notification"] * {
+    /* Efek Focus Input */
+    div[data-testid="stTextInput"] input:focus {
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.3) !important;
+    }
+
+    /* Sembunyikan Helper Text Bawaan & Label standar */
+    div[data-testid="stTextInput"] small,
+    div[data-testid="stTextInput"] div[data-aria-live="polite"] {
+        display: none !important;
+    }
+
+    /* Notifikasi Hasil Absen */
+    div[data-testid="stAlert"] {
+        border-radius: 14px !important;
+        padding: 22px !important;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    div[data-testid="stAlert"] *,
+    div[data-testid="stAlert"] p {
         color: #ffffff !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
+        font-size: 1.8rem !important;          
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
+        background-color: #047857 !important; 
+        border: none !important;
+    }
+
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
+        background-color: #b91c1c !important; 
+        border: none !important;
+    }
+
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
+        background-color: #b45309 !important; 
+        border: none !important;
     }
 </style>
 """
@@ -149,18 +176,34 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #1e293b; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-weight: 600; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Untuk penulisan NIK menggunakan 000NIK</p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #475569; font-weight: 800; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 25px;'>Contoh 00003950</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 20px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
-ENTRY_NIK = "entry.952185819"
-ENTRY_NAMA = "entry.444514235"
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
-with st.form(key="form_absen_test", clear_on_submit=True):
-    nik = st.text_input("Masukkan NIK Anda (lalu tekan Enter):")
-    submit_button = st.form_submit_button(label="Kirim Absen", use_container_width=True)
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
+ENTRY_NIK = "entry.924986826"
+ENTRY_NAMA = "entry.827733304"
 
+def handle_nik_submit():
+    input_val = st.session_state.nik_input_key.strip()
+    if input_val:
+        st.session_state.last_submitted_nik = input_val
+    st.session_state.nik_input_key = ""  # Auto-clear kotak input
+
+if "last_submitted_nik" not in st.session_state:
+    st.session_state.last_submitted_nik = ""
+
+st.text_input(
+    label="nik_label_hidden",
+    label_visibility="collapsed",
+    max_chars=8, 
+    placeholder="00000000",
+    key="nik_input_key",
+    on_change=handle_nik_submit
+)
+
+# Auto Focus Javascript
 components.html(
     """
     <script>
@@ -177,96 +220,63 @@ components.html(
     width=0
 )
 
-if submit_button:
-    nik_clean = nik.strip()
-    if not nik_clean:
-        st.warning("NIK tidak boleh kosong!")
-    elif not nik_clean.isdigit():
-        st.error("⚠️ NIK hanya boleh berisi angka! (Tidak boleh ada huruf atau simbol)")
+# Eksekusi Proses Absen dari NIK Terakhir yang Ditembak
+if st.session_state.last_submitted_nik:
+    nik_clean = st.session_state.last_submitted_nik.zfill(8) # Memastikan NIK yang diinput menjadi 8 digit
+    st.session_state.last_submitted_nik = ""  # Reset state setelah diproses
+    
+    if not nik_clean.isdigit():
+        st.error("⚠️ NIK hanya boleh berisi angka!")
     else:
-        nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
-        payload = {
-            ENTRY_NIK: nik_clean,
-            ENTRY_NAMA: nama_karyawan
-        }
-        try:
-            response = requests.post(FORM_URL, data=payload)
-            if response.status_code == 200:
-                if nama_karyawan != "Nama Tidak Ditemukan":
-                    st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
+        if is_already_absent_today(nik_clean):
+            st.error(f"❌ NIK {nik_clean} SUDAH ABSEN HARI INI!")
+        else:
+            nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
+            payload = {
+                ENTRY_NIK: nik_clean,
+                ENTRY_NAMA: nama_karyawan
+            }
+            try:
+                response = requests.post(FORM_URL, data=payload)
+                if response.status_code == 200:
+                    if nama_karyawan != "Nama Tidak Ditemukan":
+                        st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
+                    else:
+                        st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak di database)*")
                 else:
-                    st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak ditemukan di database)*")
-            else:
-                st.error(f"❌ Gagal mengirim data. Response Code: {response.status_code}")
-        except Exception as e:
-            st.error(f"Terjadi kesalahan koneksi: {e}")
+                    st.error(f"❌ Gagal mengirim data. Code: {response.status_code}")
+            except Exception as e:
+                st.error(f"❌ Terjadi kesalahan koneksi: {e}")
 
-st.write("")
 st.write("")
 
 footer_html = '<div style="text-align: right; color: #334155; font-weight: 600; font-size: 0.85rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# MENU ADMIN
+# PANEL INFORMASI & DAFTAR KARYAWAN
 # ==============================================================================
 st.divider()
 
-with st.expander("⚙️ Panel Login Admin (Klik di sini)"):
-    if "admin_logged_in" not in st.session_state:
-        st.session_state.admin_logged_in = False
+with st.expander("📋 Informasi Database & Rekap Absensi"):
+    st.write(f"Total Karyawan Terdaftar di Google Sheet: **{len(db_karyawan)} Karyawan**")
+    
+    tab_daftar, tab_respon = st.tabs([
+        "📋 Daftar Karyawan", 
+        "📊 Data Absensi (Google Form)"
+    ])
 
-    if not st.session_state.admin_logged_in:
-        with st.form("form_login_admin"):
-            password_input = st.text_input("Masukkan Password Admin:", type="password")
-            login_btn = st.form_submit_button("Login Admin")
+    with tab_daftar:
+        if db_karyawan:
+            df_karyawan = pd.DataFrame(list(db_karyawan.items()), columns=["NIK", "Nama Karyawan"])
+            st.dataframe(df_karyawan, use_container_width=True)
+            if st.button("🔄 Refresh Data Karyawan"):
+                st.cache_data.clear()
+                st.rerun()
+        else:
+            st.info("Belum ada data karyawan atau Google Sheet belum di-set Publik.")
 
-            if login_btn:
-                if password_input == ADMIN_PASSWORD:
-                    st.session_state.admin_logged_in = True
-                    st.success("Login Berhasil!")
-                    st.rerun()
-                else:
-                    st.error("Password salah!")
-    else:
-        st.write("### 🔑 Portal Admin Karyawan")
-        if st.button("🔒 Logout Admin"):
-            st.session_state.admin_logged_in = False
-            st.rerun()
-
-        tab_tambah, tab_daftar = st.tabs(["➕ Tambah Karyawan Baru", "📋 Daftar Karyawan"])
-
-        with tab_tambah:
-            with st.form("form_tambah_karyawan", clear_on_submit=True):
-                new_nik = st.text_input("NIK Karyawan Baru (contoh: 00003950):").strip()
-                new_nama = st.text_input("Nama Lengkap Karyawan:").strip()
-                submit_add = st.form_submit_button("Simpan Karyawan ke GitHub")
-
-            if submit_add:
-                if not new_nik or not new_nama:
-                    st.warning("Mohon isi NIK dan Nama secara lengkap!")
-                elif not new_nik.isdigit():
-                    st.error("⚠️ NIK Karyawan Baru hanya boleh berupa angka!")
-                else:
-                    if new_nik in db_karyawan:
-                        st.warning(f"⚠️ NIK **{new_nik}** sudah terdaftar atas nama **{db_karyawan[new_nik]}**!")
-                    else:
-                        db_karyawan[new_nik] = new_nama
-                        
-                        with st.spinner("Menyimpan ke GitHub..."):
-                            success, msg = update_karyawan_to_github(
-                                db_karyawan, 
-                                f"Tambah karyawan baru: {new_nama} ({new_nik})"
-                            )
-                            if success:
-                                st.success(f"✅ Berhasil menambahkan **{new_nama}** ({new_nik}) ke GitHub!")
-                            else:
-                                st.error(msg)
-
-        with tab_daftar:
-            st.write(f"Total Karyawan Terdaftar: **{len(db_karyawan)} Karyawan**")
-            if db_karyawan:
-                df_karyawan = pd.DataFrame(list(db_karyawan.items()), columns=["NIK", "Nama Karyawan"])
-                st.dataframe(df_karyawan, use_container_width=True)
-            else:
-                st.info("Belum ada data karyawan.")
+    with tab_respon:
+        st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
+        st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin di Google Forms.")
+        st.link_button("🔗 Buka Google Form Responses", RESPONSES_URL, use_container_width=True)
