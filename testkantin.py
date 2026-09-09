@@ -182,7 +182,7 @@ st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; fon
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
 
 # ID Entry dari Form Server Test (Sesuaikan jika berbeda)
-ENTRY_NIK = "entry.9521858196"
+ENTRY_NIK = "entry.952185819"
 ENTRY_NAMA = "entry.444514235"
 
 def handle_nik_submit():
