@@ -8,18 +8,18 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="Absensi Kantin Eka Bekasi", 
+    page_title="Absensi Kantin Eka Bekasi (Server Test)", 
     page_icon="📌",
     layout="centered"
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
-RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit?pli=1#responses"
+RESPONSES_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/viewanalytics"
 
-# 1. ID Google Sheet DATABASE KARYAWAN (Menggunakan ID Link Anda)
+# 1. ID Google Sheet DATABASE KARYAWAN
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
 
-# 2. ID Google Sheet REKAP HASIL ABSENSI (Google Form)
+# 2. ID Google Sheet REKAP HASIL ABSENSI (Google Form Test)
 RESPONSES_SPREADSHEET_ID = "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI"
 
 
@@ -38,16 +38,14 @@ def load_data_karyawan():
         if df.empty:
             return {}
             
-        # Mengambil kolom NIK dan Nama secara case-insensitive
         col_nik = [c for c in df.columns if 'nik' in c.strip().lower()][0]
         col_nama = [c for c in df.columns if 'nama' in c.strip().lower()][0]
         
-        # Bersihkan data & otomatis format NIK menjadi 8 digit (misal: 7739 -> 00007739)
         df['nik_clean'] = df[col_nik].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
         df['nama_clean'] = df[col_nama].astype(str).str.strip()
         
         return dict(zip(df['nik_clean'], df['nama_clean']))
-    except Exception as e:
+    except Exception:
         return {}
 
 
@@ -77,7 +75,7 @@ def is_already_absent_today(nik):
         ]
         
         return not already_exists.empty
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -118,9 +116,9 @@ custom_css = """
         background-color: #ffffff !important; 
         color: #0f172a !important;            
         font-size: 3.2rem !important;          
-        font-weight: 900 !important;         
-        height: 85px !important;             
-        text-align: center !important;       
+        font-weight: 900 !important;          
+        height: 85px !important;              
+        text-align: center !important;        
         letter-spacing: 6px !important;      
         border-radius: 14px !important;
         border: 3px solid #2563eb !important; 
@@ -176,12 +174,14 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #334155; font-weight: 800; font-size: 1.5rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8); margin-bottom: 20px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); margin-bottom: 20px;'>📌 Absensi Kantin Eka Bekasi (Server Test)</h1>", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.4rem; margin-bottom: 8px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHkJyHQClWw18bR2SLHBmpMWVuwYJpfERpBm--APFxsWGc1w/formResponse"
+# Link Endpoint Google Form Server Test
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
+
+# ID Entry dari Form Server Test (Sesuaikan jika berbeda)
 ENTRY_NIK = "entry.924986826"
 ENTRY_NAMA = "entry.827733304"
 
@@ -189,7 +189,7 @@ def handle_nik_submit():
     input_val = st.session_state.nik_input_key.strip()
     if input_val:
         st.session_state.last_submitted_nik = input_val
-    st.session_state.nik_input_key = ""  # Auto-clear kotak input
+    st.session_state.nik_input_key = ""
 
 if "last_submitted_nik" not in st.session_state:
     st.session_state.last_submitted_nik = ""
@@ -220,10 +220,10 @@ components.html(
     width=0
 )
 
-# Eksekusi Proses Absen dari NIK Terakhir yang Ditembak
+# Eksekusi Proses Absen
 if st.session_state.last_submitted_nik:
-    nik_clean = st.session_state.last_submitted_nik.zfill(8) # Memastikan NIK yang diinput menjadi 8 digit
-    st.session_state.last_submitted_nik = ""  # Reset state setelah diproses
+    nik_clean = st.session_state.last_submitted_nik.zfill(8)
+    st.session_state.last_submitted_nik = ""
     
     if not nik_clean.isdigit():
         st.error("⚠️ NIK hanya boleh berisi angka!")
@@ -263,7 +263,7 @@ with st.expander("📋 Informasi Database & Rekap Absensi"):
     
     tab_daftar, tab_respon = st.tabs([
         "📋 Daftar Karyawan", 
-        "📊 Data Absensi (Google Form)"
+        "📊 Data Absensi (Google Form Test)"
     ])
 
     with tab_daftar:
@@ -278,5 +278,5 @@ with st.expander("📋 Informasi Database & Rekap Absensi"):
 
     with tab_respon:
         st.write("### 📥 Tarik / Lihat Data Hasil Absensi")
-        st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin di Google Forms.")
+        st.info("Klik tombol di bawah ini untuk membuka halaman Respon / Rekap Absensi Kantin di Google Forms Test.")
         st.link_button("🔗 Buka Google Form Responses", RESPONSES_URL, use_container_width=True)
