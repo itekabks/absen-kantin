@@ -16,7 +16,7 @@ st.set_page_config(
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS (SERVER TEST) ---
 ADMIN_PASSWORD = "Eka1234!"
 
-RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
+RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit#responses"
 
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
 KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
