@@ -10,7 +10,7 @@ import streamlit.components.v1 as components
 st.set_page_config(
     page_title="Absensi Kantin Eka Bekasi (Server Test)", 
     page_icon="📌",
-    layout="centered"
+    layout="wide"
 )
 
 # --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS (SERVER TEST) ---
@@ -83,7 +83,7 @@ def is_already_absent_today(nik):
 
 db_karyawan = load_data_karyawan()
 
-# --- BACKGROUND & CUSTOM CSS (JUMBO SIZE) ---
+# --- BACKGROUND & CUSTOM CSS (SUPER JUMBO VERSION) ---
 def get_base64_image(image_path):
     if os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
@@ -96,7 +96,7 @@ if img_base64:
     bg_css = f"""
     <style>
         .stApp {{
-            background-image: linear-gradient(rgba(245, 247, 250, 0.75), rgba(195, 207, 226, 0.75)), url("data:image/jpeg;base64,{img_base64}");
+            background-image: linear-gradient(rgba(245, 247, 250, 0.70), rgba(195, 207, 226, 0.70)), url("data:image/jpeg;base64,{img_base64}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -108,29 +108,30 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container styling diperlebar agar muat huruf jumbo */
+    /* Container styling diperlebar maksimal untuk tampilan TV/Monitor */
     .stMainBlockContainer {
-        max-width: 800px !important;
+        max-width: 1100px !important;
+        padding-top: 2rem !important;
     }
 
-    /* Input Field Styling - SERTAKAN ANGKA LEBIH JUMBO */
+    /* Input Field Styling - EKSTRA JUMBO */
     div[data-testid="stTextInput"] input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 4.2rem !important;         /* Diperbesar dari 3.2rem ke 4.2rem */
+        font-size: 5.5rem !important;         /* Angka NIK Super Besar */
         font-weight: 900 !important;          
-        height: 100px !important;             /* Tinggi kotak dinaikkan ke 100px */
+        height: 120px !important;             /* Kotak Input Ekstra Tinggi */
         text-align: center !important;        
-        letter-spacing: 8px !important;      
-        border-radius: 16px !important;
-        border: 4px solid #2563eb !important; 
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+        letter-spacing: 12px !important;      /* Jarak antar angka diperlebar */
+        border-radius: 20px !important;
+        border: 5px solid #2563eb !important; 
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
     }
 
     /* Efek Focus Input */
     div[data-testid="stTextInput"] input:focus {
         border-color: #1d4ed8 !important;
-        box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.35) !important;
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.4) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan & Label standar */
@@ -139,66 +140,69 @@ custom_css = """
         display: none !important;
     }
 
-    /* 1. HEADER EXPANDER ADMIN - Terang & Teks Gelap Pekat */
+    /* HEADER EXPANDER ADMIN */
     div[data-testid="stExpander"] summary {
         background-color: rgba(255, 255, 255, 0.95) !important;
         border-radius: 12px !important;
-        border: 1px solid #cbd5e1 !important;
+        border: 2px solid #cbd5e1 !important;
+        padding: 12px 20px !important;
     }
     div[data-testid="stExpander"] summary * {
         color: #0f172a !important;
         font-weight: 800 !important;
-        font-size: 1.1rem !important;
+        font-size: 1.3rem !important;
     }
 
-    /* 2. TEKS PANEL ADMIN */
+    /* TEKS PANEL ADMIN */
     div[data-testid="stExpander"] p, 
     div[data-testid="stExpander"] span:not(button span) {
         color: #0f172a !important;
         font-weight: 700 !important;
+        font-size: 1.1rem !important;
     }
 
-    /* 3. TOMBOL LOGOUT (Merah Terang Teks Putih) */
+    /* TOMBOL LOGOUT */
     div[data-testid="stExpander"] button[kind="secondary"] {
         background-color: #dc2626 !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }
     div[data-testid="stExpander"] button[kind="secondary"] * {
         color: #ffffff !important;
         font-weight: 800 !important;
     }
 
-    /* 4. TOMBOL EDIT DATA (Biru Teks Putih) */
+    /* TOMBOL EDIT DATA */
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
         background-color: #2563eb !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] * {
         color: #ffffff !important;
         font-weight: 800 !important;
     }
 
-    /* 5. TAB HEADER */
+    /* TAB HEADER */
     button[data-baseweb="tab"] * {
         color: #0f172a !important;
         font-weight: 800 !important;
+        font-size: 1.2rem !important;
     }
 
-    /* 6. NOTIFIKASI HASIL ABSEN (DIPERBESAR SANGAT JELAS) */
+    /* NOTIFIKASI HASIL ABSEN (SUPER JELAS) */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
-        border-radius: 16px !important;
-        padding: 26px !important;
-        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25) !important;
+        border-radius: 20px !important;
+        padding: 30px !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
     }
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
         color: #ffffff !important;
-        font-size: 2.2rem !important;          /* Diperbesar ke 2.2rem */
+        font-size: 2.8rem !important;          
         font-weight: 900 !important;
         line-height: 1.3 !important;
-        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5) !important;
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6) !important;
     }
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
         background-color: #047857 !important; 
@@ -219,11 +223,11 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 900; font-size: 2.8rem; text-shadow: 1px 2px 3px rgba(255,255,255,0.9); margin-bottom: 5px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 900; font-size: 3.8rem; text-shadow: 2px 2px 4px rgba(255,255,255,0.9); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 800; font-size: 1.8rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-bottom: 15px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; font-size: 2.4rem; text-shadow: 1px 2px 3px rgba(255,255,255,0.9); margin-bottom: 20px; letter-spacing: 2px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 1.6rem; margin-bottom: 10px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 # Link Endpoint & Entry Google Form SERVER TEST
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
@@ -300,7 +304,7 @@ if st.session_state.last_submitted_nik:
 
 st.write("")
 
-footer_html = '<div style="text-align: right; color: #1e293b; font-weight: 700; font-size: 1rem; text-shadow: 1px 1px 1px rgba(255,255,255,0.8);">Created by IT Eka Bekasi</div>'
+footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; font-size: 1.3rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-top: 15px;">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
@@ -324,7 +328,7 @@ def handle_login():
         st.session_state.login_error = True
     st.session_state.pass_input_key = ""
 
-with st.expander("🔒 Informasi Database & Rekap Absensi (Khusus Admin)"):
+with st.expander("🔒 Panel Login Admin (Klik di sini)"):
     if not st.session_state.admin_logged_in:
         st.subheader("🔑 Masukkan Password Admin")
         st.text_input(
