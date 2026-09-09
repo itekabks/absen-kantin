@@ -103,42 +103,77 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container utama diperlebar */
+    /* Container utama diperlebar agar muat elemen besar */
     .stMainBlockContainer {
-        max-width: 1100px !important;
-        padding-top: 1.5rem !important;
+        max-width: 1250px !important;
+        padding-top: 1rem !important;
     }
 
-    /* Pembungkus input NIK */
+    /* Pembungkus input NIK dinaikkan ke 160px */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]),
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div,
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div > div {
-        height: 140px !important;
-        min-height: 140px !important;
-        max-height: 140px !important;
+        height: 160px !important;
+        min-height: 160px !important;
+        max-height: 160px !important;
     }
 
-    /* Input Field NIK (SUPER JUMBO) */
+    /* Input Field NIK - DIPERBESAR EXTRA JUMBO (5.2rem / 160px) */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
-        font-size: 4.5rem !important;        
+        font-size: 5.2rem !important;        
         font-weight: 900 !important;          
-        height: 140px !important;            
-        line-height: 140px !important;       
+        height: 160px !important;            
+        line-height: 160px !important;       
         text-align: center !important;        
-        letter-spacing: 10px !important;     
-        border-radius: 20px !important;
-        border: 5px solid #2563eb !important; 
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+        letter-spacing: 12px !important;     
+        border-radius: 24px !important;
+        border: 6px solid #2563eb !important; 
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25) !important;
         padding: 0 !important;               
         box-sizing: border-box !important;
+    }
+
+    /* Efek Focus Input NIK */
+    div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input:focus {
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
 
     /* Sembunyikan Helper Text Bawaan NIK */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) small,
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) div[data-aria-live="polite"] {
         display: none !important;
+    }
+
+    /* ================================================================== */
+    /* NOTIFIKASI HASIL ABSEN (DIPERBESAR MAXIMAL)                        */
+    /* ================================================================== */
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
+        border-radius: 24px !important;
+        padding: 35px 25px !important;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35) !important;
+    }
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
+    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
+        color: #ffffff !important;
+        font-size: 3.2rem !important;          /* Ukuran teks notifikasi lebih besar */
+        font-weight: 900 !important;
+        line-height: 1.3 !important;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7) !important;
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
+        background-color: #047857 !important; 
+        border: none !important;
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
+        background-color: #b91c1c !important; 
+        border: none !important;
+    }
+    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
+        background-color: #b45309 !important; 
+        border: none !important;
     }
 
     /* ================================================================== */
@@ -180,14 +215,14 @@ custom_css = """
         font-size: 1.3rem !important;
     }
 
-    /* TEKS PANEL ADMIN (KHUSUS ELEMEN PARAGRAF DAN SPAN SAJA) */
+    /* TEKS PANEL ADMIN */
     div[data-testid="stExpander"] p, 
     div[data-testid="stExpander"] div[data-testid="stMarkdownContainer"] span {
         color: #0f172a !important;
         font-weight: 700 !important;
     }
 
-    /* TOMBOL LINK BUTTON (TERANG & JELAS) */
+    /* TOMBOL LINK BUTTON */
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
         background-color: #2563eb !important;
         border: none !important;
@@ -217,33 +252,6 @@ custom_css = """
         font-weight: 800 !important;
         font-size: 1.2rem !important;
     }
-
-    /* NOTIFIKASI HASIL ABSEN */
-    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
-        border-radius: 20px !important;
-        padding: 30px !important;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
-    }
-    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
-    div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
-        color: #ffffff !important;
-        font-size: 2.8rem !important;          
-        font-weight: 900 !important;
-        line-height: 1.3 !important;
-        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6) !important;
-    }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
-        background-color: #047857 !important; 
-        border: none !important;
-    }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
-        background-color: #b91c1c !important; 
-        border: none !important;
-    }
-    div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
-        background-color: #b45309 !important; 
-        border: none !important;
-    }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -251,11 +259,11 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 # HALAMAN UTAMA: ABSENSI KANTIN
 # ==============================================================================
-st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 900; font-size: 3.8rem; text-shadow: 2px 2px 4px rgba(255,255,255,0.9); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 900; font-size: 4rem; text-shadow: 2px 2px 4px rgba(255,255,255,0.9); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; font-size: 2.4rem; text-shadow: 1px 2px 3px rgba(255,255,255,0.9); margin-bottom: 20px; letter-spacing: 2px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; font-size: 2.5rem; text-shadow: 1px 2px 3px rgba(255,255,255,0.9); margin-bottom: 20px; letter-spacing: 2px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.2rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.3rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
 ENTRY_NIK = "entry.952185819"
@@ -329,7 +337,8 @@ if st.session_state.last_submitted_nik:
 
 st.write("")
 
-footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; font-size: 1.3rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-top: 15px;">Created by IT Eka Bekasi</div>'
+# FOOTER CREATED BY DIPERBESAR (1.6rem)
+footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; font-size: 1.6rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-top: 20px;">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
 
 # ==============================================================================
@@ -363,13 +372,11 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
             on_change=handle_login
         )
         
-        # Script JS: Menambahkan Event Listener Klik pada Panel Expander & Auto Focus
+        # Script Auto Focus Password
         components.html(
             """
             <script>
                 const parentDoc = window.parent.document;
-                
-                // Fungsi Fokus langsung ke password
                 const tryFocusPassword = () => {
                     const passInput = parentDoc.querySelector('input[type="password"]');
                     if (passInput) {
@@ -377,10 +384,8 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
                     }
                 };
 
-                // Panggil langsung saat expander terbuka
                 setTimeout(tryFocusPassword, 150);
 
-                // Tambahkan event listener saat klik header expander
                 const expanderHeaders = parentDoc.querySelectorAll('div[data-testid="stExpander"] summary');
                 expanderHeaders.forEach(header => {
                     header.addEventListener('click', () => {
