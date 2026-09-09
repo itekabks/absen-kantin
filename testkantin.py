@@ -141,39 +141,70 @@ custom_css = """
         display: none !important;
     }
 
-    /* FIX WARNA TEKS EXPANDER & PANEL ADMIN (AGAR HITAM PEKAT/JELAS) */
-    div[data-testid="stExpander"] * {
+    /* 1. HEADER EXPANDER (Judul Atas) - Latar Terang & Teks Gelap Pekat */
+    div[data-testid="stExpander"] summary {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 10px !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    div[data-testid="stExpander"] summary * {
         color: #0f172a !important;
+        font-weight: 800 !important;
     }
 
-    /* Tab Header & Text Styling */
-    button[data-baseweb="tab"] *,
-    div[data-testid="stMarkdownContainer"] p,
-    div[data-testid="stMarkdownContainer"] h3 {
+    /* 2. TEKS PARAGRAF & KETERANGAN ADMIN */
+    div[data-testid="stExpander"] p, 
+    div[data-testid="stExpander"] span:not(button span) {
         color: #0f172a !important;
         font-weight: 700 !important;
     }
 
-    /* Styling Kotak Info (st.info) */
+    /* 3. TOMBOL LOGOUT (st.button) - Merah Terang dengan Teks Putih */
+    div[data-testid="stExpander"] button[kind="secondary"] {
+        background-color: #dc2626 !important;
+        border: none !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stExpander"] button[kind="secondary"] * {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+
+    /* 4. TOMBOL EDIT DATA (st.link_button) - Biru Utama dengan Teks Putih */
+    div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
+        background-color: #2563eb !important;
+        border: none !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stExpander"] a[data-testid="stLinkButton"] * {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+
+    /* 5. TAB HEADER & MARKS */
+    button[data-baseweb="tab"] * {
+        color: #0f172a !important;
+        font-weight: 800 !important;
+    }
+
+    /* 6. STYLING KOTAK INFO (st.info) */
     div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) {
         background-color: #e0f2fe !important;
         border: 1px solid #0284c7 !important;
     }
-
     div[data-testid="stAlert"]:has(svg[data-testid="stIconInfo"]) * {
         color: #0369a1 !important;
         text-shadow: none !important;
-        font-size: 1.1rem !important;
+        font-size: 1.05rem !important;
         font-weight: 700 !important;
     }
 
-    /* Notifikasi Hasil Absen (Success / Error / Warning) */
+    /* 7. NOTIFIKASI HASIL ABSEN (Success / Error / Warning) */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 14px !important;
         padding: 22px !important;
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
     }
-
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) *,
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) p {
         color: #ffffff !important;
@@ -182,17 +213,14 @@ custom_css = """
         line-height: 1.3 !important;
         text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4) !important;
     }
-
     div[data-testid="stAlert"]:has(svg[data-testid="stIconSuccess"]) {
         background-color: #047857 !important; 
         border: none !important;
     }
-
     div[data-testid="stAlert"]:has(svg[data-testid="stIconError"]) {
         background-color: #b91c1c !important; 
         border: none !important;
     }
-
     div[data-testid="stAlert"]:has(svg[data-testid="stIconWarning"]) {
         background-color: #b45309 !important; 
         border: none !important;
