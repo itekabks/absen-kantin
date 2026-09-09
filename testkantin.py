@@ -18,7 +18,7 @@ st.set_page_config(
 ADMIN_PASSWORD = "Eka1234!"
 
 # Link Rekap Responses Google Form Server Test
-RESPONSES_URL = "https://docs.google.com/forms/d/1kKLUDGAQb5UfedMVCedWBExvuOl2bsa3649CIrjEccw/edit"
+RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
 
 # 1. ID & Link Google Sheet DATABASE KARYAWAN
 KARYAWAN_SPREADSHEET_ID = "1mdIv5YXs7IHS0DQO4uNhsqrVeDT6aTgQk2EbGI_10nk"
