@@ -1,9 +1,10 @@
+from datetime import datetime
+from io import StringIO
 import base64
 import os
 import time
-from datetime import datetime
-import pytz  # Mengatasi masalah timezone
 import pandas as pd
+import pytz
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
@@ -49,45 +50,62 @@ def load_data_karyawan():
         return {}
 
 
-# --- FUNGSI CEK ABSEN DUPLIKAT (SESUAI TIMEZONE WIB & JEDA 4 JAM) ---
+# --- FUNGSI CEK ABSEN DUPLIKAT (ANTI-CACHE REALTIME & JEDA 4 JAM) ---
 def is_already_absent_today(nik, min_hours_gap=4):
     if not RESPONSES_SPREADSHEET_ID or RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
         return False
         
-    csv_url = f"https://docs.google.com/spreadsheets/d/{RESPONSES_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
+    # Parameter unik timestamp untuk memaksa Google Sheet melepaskan cache CDN
+    timestamp_key = int(time.time() * 1000)
+    csv_url = f"https://docs.google.com/spreadsheets/d/{RESPONSES_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&tq=SELECT%20A%2CB&_={timestamp_key}"
+    
+    headers = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    }
     
     try:
-        df_responses = pd.read_csv(csv_url, dtype=str)
-        if df_responses.empty:
+        res = requests.get(csv_url, headers=headers, timeout=5)
+        if res.status_code != 200:
+            return False
+
+        df_responses = pd.read_csv(StringIO(res.text), dtype=str)
+        
+        if df_responses.empty or len(df_responses.columns) < 2:
             return False
 
         col_time = df_responses.columns[0]
         col_nik = df_responses.columns[1]
 
         nik_input = str(nik).strip().zfill(8)
+        
+        # Format dan bersihkan data NIK
         df_responses['nik_clean'] = df_responses[col_nik].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
-
-        # Filter berdasarkan NIK
         user_history = df_responses[df_responses['nik_clean'] == nik_input].copy()
 
         if user_history.empty:
             return False
 
-        # Konversi Timestamp Google Sheet & samakan ke zona WIB
+        # Parse timestamp
         user_history['dt_parsed'] = pd.to_datetime(user_history[col_time], errors='coerce')
-        user_history['dt_wib'] = user_history['dt_parsed'].dt.tz_localize('Asia/Jakarta', ambiguous='NaT', nonexistent='NaT')
+        last_absen_time = user_history['dt_parsed'].max()
         
-        last_absen_time = user_history['dt_wib'].max()
         if pd.isna(last_absen_time):
             return False
 
-        # Waktu sekarang di WIB
+        # Samakan timezone ke WIB
         now_wib = datetime.now(TIMEZONE_WIB)
         
-        # Hitung selisih waktu dalam jam
+        if last_absen_time.tzinfo is None:
+            last_absen_time = TIMEZONE_WIB.localize(last_absen_time)
+        else:
+            last_absen_time = last_absen_time.astimezone(TIMEZONE_WIB)
+
+        # Hitung selisih jam
         time_difference = (now_wib - last_absen_time).total_seconds() / 3600.0
 
-        # Jika selisih waktu kurang dari 4 jam -> Tolak
+        # Jika selisih waktu KURANG dari 4 jam, BLOKIR
         if time_difference < min_hours_gap:
             return True
 
@@ -267,8 +285,6 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ==============================================================================
 st.markdown("<h1 style='text-align: center; color: #0f172a; font-weight: 900; font-size: 4rem; text-shadow: 2px 2px 4px rgba(255,255,255,0.9); margin-bottom: 10px;'>📌 Absensi Kantin Eka Bekasi</h1>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: #1e293b; font-weight: 900; font-size: 2.5rem; text-shadow: 1px 2px 3px rgba(255,255,255,0.9); margin-bottom: 20px; letter-spacing: 2px;'>CONTOH PENULISAN NIK 00003950</p>", unsafe_allow_html=True)
-
 st.markdown("<p style='text-align: center; color: #0f172a; font-weight: 800; font-size: 2.3rem; margin-bottom: 15px;'>Silakan Ketik NIK Anda (Lalu tekan Enter):</p>", unsafe_allow_html=True)
 
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnTi-b9vCrBSRMr-G7k3_4buevp02nJ9J6ybkatj5SGCKKfw/formResponse"
@@ -293,7 +309,7 @@ st.text_input(
     on_change=handle_nik_submit
 )
 
-# Auto Focus NIK
+# Auto Focus Input NIK
 components.html(
     """
     <script>
@@ -321,7 +337,10 @@ if st.session_state.last_submitted_nik:
         st.error(f"❌ NIK harus berjumlah tepat 8 digit angka! (Anda mengetik {len(input_nik)} digit)")
     else:
         nik_clean = input_nik
-        if is_already_absent_today(nik_clean, min_hours_gap=4):
+        with st.spinner("Memeriksa status absen..."):
+            is_blocked = is_already_absent_today(nik_clean, min_hours_gap=4)
+
+        if is_blocked:
             st.error(f"❌ NIK {nik_clean} SUDAH ABSEN! (Harus tunggu jeda min. 4 jam untuk absen lagi)")
         else:
             nama_karyawan = db_karyawan.get(nik_clean, "Nama Tidak Ditemukan")
@@ -337,8 +356,7 @@ if st.session_state.last_submitted_nik:
                     else:
                         st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak di database)*")
                     
-                    # Delay 2 detik agar Google Form sempat menulis baris ke Google Sheet
-                    time.sleep(2)
+                    time.sleep(1.5)
                 else:
                     st.error(f"❌ Gagal mengirim data. Code: {response.status_code}")
             except Exception as e:
