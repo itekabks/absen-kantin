@@ -1,7 +1,8 @@
-from datetime import datetime
 import base64
 import os
 import time
+from datetime import datetime
+import pytz  # Mengatasi masalah timezone
 import pandas as pd
 import requests
 import streamlit as st
@@ -13,20 +14,18 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS (SERVER TEST) ---
+# --- CONFIGURATION VIA STREAMLIT SECRETS & CONSTANTS ---
 ADMIN_PASSWORD = "Eka1234!"
-
 RESPONSES_URL = "https://docs.google.com/forms/d/1yXnImWhn058mHP4DZ8l6F03AxaGljZGos-wZpJcyPVY/edit#responses"
 
-# Spreadsheet Database Karyawan
 KARYAWAN_SPREADSHEET_ID = "1gexPaVq-3wzZaxljWC2df_Jqey_6mvzzVBuQeC8JcIM"
 KARYAWAN_SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{KARYAWAN_SPREADSHEET_ID}/edit"
-
-# ID Spreadsheet Penampung Respon Google Form (Wajib diisi agar pengecekan 4 jam berfungsi)
 RESPONSES_SPREADSHEET_ID = "1gexPaVq-3wzZaxljWC2df_Jqey_6mvzzVBuQeC8JcIM"
 
+TIMEZONE_WIB = pytz.timezone("Asia/Jakarta")
 
-# --- FUNGSI BACA DATABASE KARYAWAN DARI GOOGLE SPREADSHEET ---
+
+# --- FUNGSI BACA DATABASE KARYAWAN ---
 @st.cache_data(ttl=10)
 def load_data_karyawan():
     if not KARYAWAN_SPREADSHEET_ID:
@@ -50,44 +49,52 @@ def load_data_karyawan():
         return {}
 
 
-# --- FUNGSI CEK ABSEN DUPLIKAT (JEDA MINIMAL 4 JAM) ---
+# --- FUNGSI CEK ABSEN DUPLIKAT (SESUAI TIMEZONE WIB & JEDA 4 JAM) ---
 def is_already_absent_today(nik, min_hours_gap=4):
-    if RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
+    if not RESPONSES_SPREADSHEET_ID or RESPONSES_SPREADSHEET_ID == "MASUKKAN_ID_SPREADSHEET_GOOGLE_FORM_DI_SINI":
         return False
         
     csv_url = f"https://docs.google.com/spreadsheets/d/{RESPONSES_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&nocache={int(time.time())}"
     
     try:
-        df_responses = pd.read_csv(csv_url)
+        df_responses = pd.read_csv(csv_url, dtype=str)
         if df_responses.empty:
             return False
 
-        # Konversi Kolom Timestamp ke format Datetime
-        df_responses.iloc[:, 0] = pd.to_datetime(df_responses.iloc[:, 0], errors='coerce')
-        
-        nik_input = str(nik).strip()
-        nik_in_sheet = df_responses.iloc[:, 1].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
+        col_time = df_responses.columns[0]
+        col_nik = df_responses.columns[1]
 
-        # Filter riwayat absen khusus NIK ini
-        user_history = df_responses[nik_in_sheet == nik_input]
+        nik_input = str(nik).strip().zfill(8)
+        df_responses['nik_clean'] = df_responses[col_nik].astype(str).str.strip().str.replace(".0", "", regex=False).str.zfill(8)
+
+        # Filter berdasarkan NIK
+        user_history = df_responses[df_responses['nik_clean'] == nik_input].copy()
 
         if user_history.empty:
             return False
 
-        # Ambil waktu absen TERAKHIR dari NIK tersebut
-        last_absen_time = user_history.iloc[:, 0].max()
-        now = datetime.now()
+        # Konversi Timestamp Google Sheet & samakan ke zona WIB
+        user_history['dt_parsed'] = pd.to_datetime(user_history[col_time], errors='coerce')
+        user_history['dt_wib'] = user_history['dt_parsed'].dt.tz_localize('Asia/Jakarta', ambiguous='NaT', nonexistent='NaT')
+        
+        last_absen_time = user_history['dt_wib'].max()
+        if pd.isna(last_absen_time):
+            return False
 
-        # Hitung selisih waktu (dalam jam) antara sekarang dengan absen terakhir
-        time_difference = (now - last_absen_time).total_seconds() / 3600.0
+        # Waktu sekarang di WIB
+        now_wib = datetime.now(TIMEZONE_WIB)
+        
+        # Hitung selisih waktu dalam jam
+        time_difference = (now_wib - last_absen_time).total_seconds() / 3600.0
 
-        # Jika selisih waktu KURANG dari 4 jam, anggap DOUBLE ABSEN
+        # Jika selisih waktu kurang dari 4 jam -> Tolak
         if time_difference < min_hours_gap:
             return True
 
         return False
 
-    except Exception:
+    except Exception as e:
+        print(f"Error checking duplicate: {e}")
         return False
 
 
@@ -118,13 +125,11 @@ if img_base64:
 
 custom_css = """
 <style>
-    /* Container utama diperlebar */
     .stMainBlockContainer {
         max-width: 1250px !important;
         padding-top: 1rem !important;
     }
 
-    /* Pembungkus input NIK dinaikkan ke 160px */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]),
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div,
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) > div > div {
@@ -133,7 +138,6 @@ custom_css = """
         max-height: 160px !important;
     }
 
-    /* Input Field NIK - EXTRA JUMBO */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input {
         background-color: #ffffff !important; 
         color: #0f172a !important;            
@@ -150,19 +154,16 @@ custom_css = """
         box-sizing: border-box !important;
     }
 
-    /* Efek Focus Input NIK */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) input:focus {
         border-color: #1d4ed8 !important;
         box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.4) !important;
     }
 
-    /* Sembunyikan Helper Text Bawaan NIK */
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) small,
     div[data-testid="stTextInput"]:not(div[data-testid="stExpander"] div[data-testid="stTextInput"]) div[data-aria-live="polite"] {
         display: none !important;
     }
 
-    /* NOTIFIKASI HASIL ABSEN (DIPERBESAR MAXIMAL) */
     div[data-testid="stAlert"]:not(:has(svg[data-testid="stIconInfo"])) {
         border-radius: 24px !important;
         padding: 35px 25px !important;
@@ -189,7 +190,6 @@ custom_css = """
         border: none !important;
     }
 
-    /* INPUT PASSWORD ADMIN (STANDAR / BIASA) */
     div[data-testid="stExpander"] div[data-testid="stTextInput"],
     div[data-testid="stExpander"] div[data-testid="stTextInput"] > div,
     div[data-testid="stExpander"] div[data-testid="stTextInput"] > div > div {
@@ -213,7 +213,6 @@ custom_css = """
         color: #0f172a !important;
     }
 
-    /* HEADER EXPANDER ADMIN */
     div[data-testid="stExpander"] summary {
         background-color: rgba(255, 255, 255, 0.95) !important;
         border-radius: 12px !important;
@@ -226,14 +225,12 @@ custom_css = """
         font-size: 1.3rem !important;
     }
 
-    /* TEKS PANEL ADMIN */
     div[data-testid="stExpander"] p, 
     div[data-testid="stExpander"] div[data-testid="stMarkdownContainer"] span {
         color: #0f172a !important;
         font-weight: 700 !important;
     }
 
-    /* TOMBOL LINK BUTTON (TERANG & JELAS) */
     div[data-testid="stExpander"] a[data-testid="stLinkButton"] {
         background-color: #2563eb !important;
         border: none !important;
@@ -246,7 +243,6 @@ custom_css = """
         font-size: 1.1rem !important;
     }
 
-    /* TOMBOL LOGOUT */
     div[data-testid="stExpander"] button[kind="secondary"] {
         background-color: #dc2626 !important;
         border: none !important;
@@ -257,7 +253,6 @@ custom_css = """
         font-weight: 800 !important;
     }
 
-    /* TAB HEADER */
     button[data-baseweb="tab"] * {
         color: #0f172a !important;
         font-weight: 800 !important;
@@ -298,7 +293,7 @@ st.text_input(
     on_change=handle_nik_submit
 )
 
-# Auto Focus untuk Input NIK
+# Auto Focus NIK
 components.html(
     """
     <script>
@@ -341,6 +336,9 @@ if st.session_state.last_submitted_nik:
                         st.success(f"✅ Berhasil Absen: **{nama_karyawan.title()}** (NIK: {nik_clean})")
                     else:
                         st.warning(f"⚠️ Berhasil Absen NIK: **{nik_clean}** *(Nama tidak di database)*")
+                    
+                    # Delay 2 detik agar Google Form sempat menulis baris ke Google Sheet
+                    time.sleep(2)
                 else:
                     st.error(f"❌ Gagal mengirim data. Code: {response.status_code}")
             except Exception as e:
@@ -348,7 +346,6 @@ if st.session_state.last_submitted_nik:
 
 st.write("")
 
-# FOOTER CREATED BY
 footer_html = '<div style="text-align: right; color: #0f172a; font-weight: 800; font-size: 1.6rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.9); margin-top: 20px;">Created by IT Eka Bekasi</div>'
 st.markdown(footer_html, unsafe_allow_html=True)
 
@@ -383,7 +380,6 @@ with st.expander("🔒 Panel Login Admin (Klik di sini)"):
             on_change=handle_login
         )
         
-        # Script Auto Focus Password saat Expander Ditingkatkan
         components.html(
             """
             <script>
